@@ -13,7 +13,7 @@
                             $query_category_list = mysqli_query($mysqli, $sql_category_list);
                             while ($row_category = mysqli_fetch_array($query_category_list)) {
                             ?>
-                                <li class="block__item"><a class="footer__anchor" href="index.php?page=product_category&category_id=<?php echo $row_category['category_id'] ?>"><?php echo $row_category['category_name'] ?></a></li>
+                                <li class="block__item"><a class="footer__anchor" href="index.php?page=products&category_id=<?php echo $row_category['category_id'] ?>"><?php echo $row_category['category_name'] ?></a></li>
                             <?php
                             }
                             ?>
