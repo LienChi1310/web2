@@ -1,0 +1,40 @@
+# Composer vendor
+webfull/vendor/
+Phase1/vendor/
+Phase2/vendor/
+Phase3/vendor/
+
+# zip files
+*.zip
+webfull/vendor/
+Phase1/vendor/
+Phase2/vendor/
+Phase3/vendor/
+
+# env
+.env
+
+# IDE
+.vscode/
+.ipynb_checkpoints/
+
+# docs
+*.docx
+*.xlsx
+*.pptx
+*.pdf
+
+# sql
+*.sql
+
+# PHPUnit / PHP cache
+.phpunit.result.cache
+phpunit.result.cache
+webfull/.phpunit.result.cache
+webfull/phpunit.result.cache
+
+# PHPUnit coverage report
+webfull/coverage/
+coverage/
+
+
