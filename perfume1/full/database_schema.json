@@ -1,0 +1,1127 @@
+[
+    {
+        "TableName": "account",
+        "ColumnCount": 7,
+        "RowCount": "21",
+        "Columns": [
+            {
+                "Field": "account_id",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment"
+            },
+            {
+                "Field": "account_name",
+                "Type": "varchar(255)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "account_password",
+                "Type": "varchar(100)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "account_email",
+                "Type": "varchar(255)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "account_phone",
+                "Type": "varchar(20)",
+                "Null": "YES",
+                "Key": "",
+                "Default": "NULL",
+                "Extra": ""
+            },
+            {
+                "Field": "account_type",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "account_status",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": "1",
+                "Extra": ""
+            }
+        ]
+    },
+    {
+        "TableName": "product",
+        "ColumnCount": 14,
+        "RowCount": "14",
+        "Columns": [
+            {
+                "Field": "product_id",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment"
+            },
+            {
+                "Field": "product_name",
+                "Type": "varchar(100)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "product_category",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "product_brand",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "capacity_id",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "product_quantity",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": "0",
+                "Extra": ""
+            },
+            {
+                "Field": "quantity_sales",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": "0",
+                "Extra": ""
+            },
+            {
+                "Field": "product_price_import",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "product_profit_percent",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": "20",
+                "Extra": ""
+            },
+            {
+                "Field": "product_price",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "product_sale",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "product_description",
+                "Type": "text",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "product_image",
+                "Type": "text",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "product_status",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": "1",
+                "Extra": ""
+            }
+        ]
+    },
+    {
+        "TableName": "orders",
+        "ColumnCount": 8,
+        "RowCount": "160",
+        "Columns": [
+            {
+                "Field": "order_id",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment"
+            },
+            {
+                "Field": "order_code",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "order_date",
+                "Type": "varchar(50)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "account_id",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "delivery_id",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "total_amount",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "order_type",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "order_status",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            }
+        ]
+    },
+    {
+        "TableName": "order_detail",
+        "ColumnCount": 6,
+        "RowCount": "199",
+        "Columns": [
+            {
+                "Field": "order_detail_id",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment"
+            },
+            {
+                "Field": "order_code",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "product_id",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "product_quantity",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "product_price",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "product_sale",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            }
+        ]
+    },
+    {
+        "TableName": "customer",
+        "ColumnCount": 7,
+        "RowCount": "27",
+        "Columns": [
+            {
+                "Field": "customer_id",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment"
+            },
+            {
+                "Field": "account_id",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "customer_name",
+                "Type": "varchar(100)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "customer_gender",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "customer_email",
+                "Type": "varchar(100)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "customer_phone",
+                "Type": "varchar(50)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "customer_address",
+                "Type": "text",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            }
+        ]
+    },
+    {
+        "TableName": "category",
+        "ColumnCount": 4,
+        "RowCount": "2",
+        "Columns": [
+            {
+                "Field": "category_id",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment"
+            },
+            {
+                "Field": "category_name",
+                "Type": "varchar(100)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "category_description",
+                "Type": "text",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "category_image",
+                "Type": "varchar(100)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            }
+        ]
+    },
+    {
+        "TableName": "brand",
+        "ColumnCount": 2,
+        "RowCount": "4",
+        "Columns": [
+            {
+                "Field": "brand_id",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment"
+            },
+            {
+                "Field": "brand_name",
+                "Type": "varchar(50)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            }
+        ]
+    },
+    {
+        "TableName": "capacity",
+        "ColumnCount": 2,
+        "RowCount": "10",
+        "Columns": [
+            {
+                "Field": "capacity_id",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment"
+            },
+            {
+                "Field": "capacity_name",
+                "Type": "varchar(50)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            }
+        ]
+    },
+    {
+        "TableName": "collection",
+        "ColumnCount": 7,
+        "RowCount": "1",
+        "Columns": [
+            {
+                "Field": "collection_id",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment"
+            },
+            {
+                "Field": "collection_name",
+                "Type": "varchar(100)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "collection_keyword",
+                "Type": "varchar(100)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "collection_image",
+                "Type": "varchar(100)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "collection_description",
+                "Type": "varchar(255)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "collection_order",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "collection_type",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            }
+        ]
+    },
+    {
+        "TableName": "article",
+        "ColumnCount": 8,
+        "RowCount": "4",
+        "Columns": [
+            {
+                "Field": "article_id",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment"
+            },
+            {
+                "Field": "article_author",
+                "Type": "varchar(100)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "article_title",
+                "Type": "varchar(255)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "article_summary",
+                "Type": "text",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "article_content",
+                "Type": "text",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "article_image",
+                "Type": "varchar(100)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "article_date",
+                "Type": "date",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "article_status",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            }
+        ]
+    },
+    {
+        "TableName": "comment",
+        "ColumnCount": 7,
+        "RowCount": "6",
+        "Columns": [
+            {
+                "Field": "comment_id",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment"
+            },
+            {
+                "Field": "article_id",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "comment_name",
+                "Type": "varchar(50)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "comment_email",
+                "Type": "varchar(50)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "comment_content",
+                "Type": "text",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "comment_date",
+                "Type": "date",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "comment_status",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            }
+        ]
+    },
+    {
+        "TableName": "evaluate",
+        "ColumnCount": 8,
+        "RowCount": "10",
+        "Columns": [
+            {
+                "Field": "evaluate_id",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment"
+            },
+            {
+                "Field": "account_id",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "product_id",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "account_name",
+                "Type": "varchar(50)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "evaluate_rate",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "evaluate_content",
+                "Type": "text",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "evaluate_date",
+                "Type": "varchar(50)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "evaluate_status",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            }
+        ]
+    },
+    {
+        "TableName": "delivery",
+        "ColumnCount": 6,
+        "RowCount": "213",
+        "Columns": [
+            {
+                "Field": "delivery_id",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "account_id",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "delivery_name",
+                "Type": "varchar(100)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "delivery_phone",
+                "Type": "varchar(20)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "delivery_address",
+                "Type": "varchar(100)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "delivery_note",
+                "Type": "varchar(100)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            }
+        ]
+    },
+    {
+        "TableName": "inventory",
+        "ColumnCount": 3,
+        "RowCount": "6",
+        "Columns": [
+            {
+                "Field": "inventory_id",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment"
+            },
+            {
+                "Field": "inventory_date",
+                "Type": "datetime",
+                "Null": "YES",
+                "Key": "",
+                "Default": "NULL",
+                "Extra": ""
+            },
+            {
+                "Field": "inventory_status",
+                "Type": "int(11)",
+                "Null": "YES",
+                "Key": "",
+                "Default": "0",
+                "Extra": ""
+            }
+        ]
+    },
+    {
+        "TableName": "inventory_detail",
+        "ColumnCount": 5,
+        "RowCount": "8",
+        "Columns": [
+            {
+                "Field": "id",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment"
+            },
+            {
+                "Field": "inventory_id",
+                "Type": "int(11)",
+                "Null": "YES",
+                "Key": "",
+                "Default": "NULL",
+                "Extra": ""
+            },
+            {
+                "Field": "product_id",
+                "Type": "int(11)",
+                "Null": "YES",
+                "Key": "",
+                "Default": "NULL",
+                "Extra": ""
+            },
+            {
+                "Field": "quantity",
+                "Type": "int(11)",
+                "Null": "YES",
+                "Key": "",
+                "Default": "NULL",
+                "Extra": ""
+            },
+            {
+                "Field": "price_import",
+                "Type": "int(11)",
+                "Null": "YES",
+                "Key": "",
+                "Default": "NULL",
+                "Extra": ""
+            }
+        ]
+    },
+    {
+        "TableName": "vnpay",
+        "ColumnCount": 11,
+        "RowCount": "48",
+        "Columns": [
+            {
+                "Field": "vnp_id",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment"
+            },
+            {
+                "Field": "vnp_amount",
+                "Type": "varchar(50)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "vnp_bankcode",
+                "Type": "varchar(50)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "vnp_banktranno",
+                "Type": "varchar(50)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "vnp_cardtype",
+                "Type": "varchar(50)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "vnp_orderinfo",
+                "Type": "varchar(100)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "vnp_paydate",
+                "Type": "varchar(50)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "vnp_tmncode",
+                "Type": "varchar(50)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "vnp_transactionno",
+                "Type": "varchar(50)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "order_code",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "payment_status",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            }
+        ]
+    },
+    {
+        "TableName": "momo",
+        "ColumnCount": 10,
+        "RowCount": "3",
+        "Columns": [
+            {
+                "Field": "momo_id",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment"
+            },
+            {
+                "Field": "partner_code",
+                "Type": "varchar(50)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "order_code",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "momo_amount",
+                "Type": "varchar(50)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "order_info",
+                "Type": "varchar(100)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "order_type",
+                "Type": "varchar(50)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "trans_id",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "payment_date",
+                "Type": "varchar(50)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "pay_type",
+                "Type": "varchar(50)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "payment_status",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            }
+        ]
+    },
+    {
+        "TableName": "metrics",
+        "ColumnCount": 5,
+        "RowCount": "39",
+        "Columns": [
+            {
+                "Field": "metric_id",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment"
+            },
+            {
+                "Field": "metric_date",
+                "Type": "date",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "metric_order",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "metric_sales",
+                "Type": "varchar(100)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "metric_quantity",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            }
+        ]
+    },
+    {
+        "TableName": "user_cart_items",
+        "ColumnCount": 4,
+        "RowCount": "0",
+        "Columns": [
+            {
+                "Field": "id",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "PRI",
+                "Default": null,
+                "Extra": "auto_increment"
+            },
+            {
+                "Field": "account_email",
+                "Type": "varchar(190)",
+                "Null": "NO",
+                "Key": "MUL",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "product_id",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": null,
+                "Extra": ""
+            },
+            {
+                "Field": "qty",
+                "Type": "int(11)",
+                "Null": "NO",
+                "Key": "",
+                "Default": "1",
+                "Extra": ""
+            }
+        ]
+    }
+]

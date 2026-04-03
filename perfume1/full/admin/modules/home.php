@@ -23,7 +23,7 @@ $query_customer = mysqli_query($mysqli, "SELECT * FROM customer");
 $customer_count = mysqli_num_rows($query_customer);
 ?>
 <div class="row">
-    <div class="col-lg-3 grid-margin stretch-card">
+    <div class="col-12 col-sm-6 col-lg-3 grid-margin stretch-card">
         <div class="card">
             <div class="card-body">
                 <div class="card-content">
@@ -36,7 +36,7 @@ $customer_count = mysqli_num_rows($query_customer);
             </div>
         </div>
     </div>
-    <div class="col-lg-3 grid-margin stretch-card">
+    <div class="col-12 col-sm-6 col-lg-3 grid-margin stretch-card">
         <div class="card">
             <div class="card-body">
                 <div class="card-content">
@@ -49,7 +49,7 @@ $customer_count = mysqli_num_rows($query_customer);
             </div>
         </div>
     </div>
-    <div class="col-lg-3 grid-margin stretch-card">
+    <div class="col-12 col-sm-6 col-lg-3 grid-margin stretch-card">
         <div class="card">
             <div class="card-body">
                 <div class="card-content">
@@ -62,7 +62,7 @@ $customer_count = mysqli_num_rows($query_customer);
             </div>
         </div>
     </div>
-    <div class="col-lg-3 grid-margin stretch-card">
+    <div class="col-12 col-sm-6 col-lg-3 grid-margin stretch-card">
         <div class="card">
             <div class="card-body">
                 <div class="card-content">

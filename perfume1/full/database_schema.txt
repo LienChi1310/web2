@@ -1,0 +1,242 @@
+=== DATABASE SCHEMA EXTRACTION - dbperfume_clone ===
+Generated: 2026-04-03 15:22:25
+=================================================================================
+
+TABLE: ACCOUNT
+------------------------------------------------------------
+  Column Count: 7
+  Row Count: 21
+  Columns:
+    1. account_id                | Type: int(11)              | Null: NO  | Key: PRI | Default: NULL            | Extra: auto_increment
+    2. account_name              | Type: varchar(255)         | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    3. account_password          | Type: varchar(100)         | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    4. account_email             | Type: varchar(255)         | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    5. account_phone             | Type: varchar(20)          | Null: YES | Key: -   | Default: NULL            | Extra: -
+    6. account_type              | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    7. account_status            | Type: int(11)              | Null: NO  | Key: -   | Default: 1               | Extra: -
+
+TABLE: PRODUCT
+------------------------------------------------------------
+  Column Count: 14
+  Row Count: 14
+  Columns:
+    1. product_id                | Type: int(11)              | Null: NO  | Key: PRI | Default: NULL            | Extra: auto_increment
+    2. product_name              | Type: varchar(100)         | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    3. product_category          | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    4. product_brand             | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    5. capacity_id               | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    6. product_quantity          | Type: int(11)              | Null: NO  | Key: -   | Default: 0               | Extra: -
+    7. quantity_sales            | Type: int(11)              | Null: NO  | Key: -   | Default: 0               | Extra: -
+    8. product_price_import      | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    9. product_profit_percent    | Type: int(11)              | Null: NO  | Key: -   | Default: 20              | Extra: -
+    10. product_price             | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    11. product_sale              | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    12. product_description       | Type: text                 | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    13. product_image             | Type: text                 | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    14. product_status            | Type: int(11)              | Null: NO  | Key: -   | Default: 1               | Extra: -
+
+TABLE: ORDERS
+------------------------------------------------------------
+  Column Count: 8
+  Row Count: 160
+  Columns:
+    1. order_id                  | Type: int(11)              | Null: NO  | Key: PRI | Default: NULL            | Extra: auto_increment
+    2. order_code                | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    3. order_date                | Type: varchar(50)          | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    4. account_id                | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    5. delivery_id               | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    6. total_amount              | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    7. order_type                | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    8. order_status              | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+
+TABLE: ORDER_DETAIL
+------------------------------------------------------------
+  Column Count: 6
+  Row Count: 199
+  Columns:
+    1. order_detail_id           | Type: int(11)              | Null: NO  | Key: PRI | Default: NULL            | Extra: auto_increment
+    2. order_code                | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    3. product_id                | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    4. product_quantity          | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    5. product_price             | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    6. product_sale              | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+
+TABLE: CUSTOMER
+------------------------------------------------------------
+  Column Count: 7
+  Row Count: 27
+  Columns:
+    1. customer_id               | Type: int(11)              | Null: NO  | Key: PRI | Default: NULL            | Extra: auto_increment
+    2. account_id                | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    3. customer_name             | Type: varchar(100)         | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    4. customer_gender           | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    5. customer_email            | Type: varchar(100)         | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    6. customer_phone            | Type: varchar(50)          | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    7. customer_address          | Type: text                 | Null: NO  | Key: -   | Default: NULL            | Extra: -
+
+TABLE: CATEGORY
+------------------------------------------------------------
+  Column Count: 4
+  Row Count: 2
+  Columns:
+    1. category_id               | Type: int(11)              | Null: NO  | Key: PRI | Default: NULL            | Extra: auto_increment
+    2. category_name             | Type: varchar(100)         | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    3. category_description      | Type: text                 | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    4. category_image            | Type: varchar(100)         | Null: NO  | Key: -   | Default: NULL            | Extra: -
+
+TABLE: BRAND
+------------------------------------------------------------
+  Column Count: 2
+  Row Count: 4
+  Columns:
+    1. brand_id                  | Type: int(11)              | Null: NO  | Key: PRI | Default: NULL            | Extra: auto_increment
+    2. brand_name                | Type: varchar(50)          | Null: NO  | Key: -   | Default: NULL            | Extra: -
+
+TABLE: CAPACITY
+------------------------------------------------------------
+  Column Count: 2
+  Row Count: 10
+  Columns:
+    1. capacity_id               | Type: int(11)              | Null: NO  | Key: PRI | Default: NULL            | Extra: auto_increment
+    2. capacity_name             | Type: varchar(50)          | Null: NO  | Key: -   | Default: NULL            | Extra: -
+
+TABLE: COLLECTION
+------------------------------------------------------------
+  Column Count: 7
+  Row Count: 1
+  Columns:
+    1. collection_id             | Type: int(11)              | Null: NO  | Key: PRI | Default: NULL            | Extra: auto_increment
+    2. collection_name           | Type: varchar(100)         | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    3. collection_keyword        | Type: varchar(100)         | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    4. collection_image          | Type: varchar(100)         | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    5. collection_description    | Type: varchar(255)         | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    6. collection_order          | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    7. collection_type           | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+
+TABLE: ARTICLE
+------------------------------------------------------------
+  Column Count: 8
+  Row Count: 4
+  Columns:
+    1. article_id                | Type: int(11)              | Null: NO  | Key: PRI | Default: NULL            | Extra: auto_increment
+    2. article_author            | Type: varchar(100)         | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    3. article_title             | Type: varchar(255)         | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    4. article_summary           | Type: text                 | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    5. article_content           | Type: text                 | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    6. article_image             | Type: varchar(100)         | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    7. article_date              | Type: date                 | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    8. article_status            | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+
+TABLE: COMMENT
+------------------------------------------------------------
+  Column Count: 7
+  Row Count: 6
+  Columns:
+    1. comment_id                | Type: int(11)              | Null: NO  | Key: PRI | Default: NULL            | Extra: auto_increment
+    2. article_id                | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    3. comment_name              | Type: varchar(50)          | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    4. comment_email             | Type: varchar(50)          | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    5. comment_content           | Type: text                 | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    6. comment_date              | Type: date                 | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    7. comment_status            | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+
+TABLE: EVALUATE
+------------------------------------------------------------
+  Column Count: 8
+  Row Count: 10
+  Columns:
+    1. evaluate_id               | Type: int(11)              | Null: NO  | Key: PRI | Default: NULL            | Extra: auto_increment
+    2. account_id                | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    3. product_id                | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    4. account_name              | Type: varchar(50)          | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    5. evaluate_rate             | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    6. evaluate_content          | Type: text                 | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    7. evaluate_date             | Type: varchar(50)          | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    8. evaluate_status           | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+
+TABLE: DELIVERY
+------------------------------------------------------------
+  Column Count: 6
+  Row Count: 213
+  Columns:
+    1. delivery_id               | Type: int(11)              | Null: NO  | Key: PRI | Default: NULL            | Extra: -
+    2. account_id                | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    3. delivery_name             | Type: varchar(100)         | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    4. delivery_phone            | Type: varchar(20)          | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    5. delivery_address          | Type: varchar(100)         | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    6. delivery_note             | Type: varchar(100)         | Null: NO  | Key: -   | Default: NULL            | Extra: -
+
+TABLE: INVENTORY
+------------------------------------------------------------
+  Column Count: 3
+  Row Count: 6
+  Columns:
+    1. inventory_id              | Type: int(11)              | Null: NO  | Key: PRI | Default: NULL            | Extra: auto_increment
+    2. inventory_date            | Type: datetime             | Null: YES | Key: -   | Default: NULL            | Extra: -
+    3. inventory_status          | Type: int(11)              | Null: YES | Key: -   | Default: 0               | Extra: -
+
+TABLE: INVENTORY_DETAIL
+------------------------------------------------------------
+  Column Count: 5
+  Row Count: 8
+  Columns:
+    1. id                        | Type: int(11)              | Null: NO  | Key: PRI | Default: NULL            | Extra: auto_increment
+    2. inventory_id              | Type: int(11)              | Null: YES | Key: -   | Default: NULL            | Extra: -
+    3. product_id                | Type: int(11)              | Null: YES | Key: -   | Default: NULL            | Extra: -
+    4. quantity                  | Type: int(11)              | Null: YES | Key: -   | Default: NULL            | Extra: -
+    5. price_import              | Type: int(11)              | Null: YES | Key: -   | Default: NULL            | Extra: -
+
+TABLE: VNPAY
+------------------------------------------------------------
+  Column Count: 11
+  Row Count: 48
+  Columns:
+    1. vnp_id                    | Type: int(11)              | Null: NO  | Key: PRI | Default: NULL            | Extra: auto_increment
+    2. vnp_amount                | Type: varchar(50)          | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    3. vnp_bankcode              | Type: varchar(50)          | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    4. vnp_banktranno            | Type: varchar(50)          | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    5. vnp_cardtype              | Type: varchar(50)          | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    6. vnp_orderinfo             | Type: varchar(100)         | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    7. vnp_paydate               | Type: varchar(50)          | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    8. vnp_tmncode               | Type: varchar(50)          | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    9. vnp_transactionno         | Type: varchar(50)          | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    10. order_code                | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    11. payment_status            | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+
+TABLE: MOMO
+------------------------------------------------------------
+  Column Count: 10
+  Row Count: 3
+  Columns:
+    1. momo_id                   | Type: int(11)              | Null: NO  | Key: PRI | Default: NULL            | Extra: auto_increment
+    2. partner_code              | Type: varchar(50)          | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    3. order_code                | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    4. momo_amount               | Type: varchar(50)          | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    5. order_info                | Type: varchar(100)         | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    6. order_type                | Type: varchar(50)          | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    7. trans_id                  | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    8. payment_date              | Type: varchar(50)          | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    9. pay_type                  | Type: varchar(50)          | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    10. payment_status            | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+
+TABLE: METRICS
+------------------------------------------------------------
+  Column Count: 5
+  Row Count: 39
+  Columns:
+    1. metric_id                 | Type: int(11)              | Null: NO  | Key: PRI | Default: NULL            | Extra: auto_increment
+    2. metric_date               | Type: date                 | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    3. metric_order              | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    4. metric_sales              | Type: varchar(100)         | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    5. metric_quantity           | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+
+TABLE: USER_CART_ITEMS
+------------------------------------------------------------
+  Column Count: 4
+  Row Count: 0
+  Columns:
+    1. id                        | Type: int(11)              | Null: NO  | Key: PRI | Default: NULL            | Extra: auto_increment
+    2. account_email             | Type: varchar(190)         | Null: NO  | Key: MUL | Default: NULL            | Extra: -
+    3. product_id                | Type: int(11)              | Null: NO  | Key: -   | Default: NULL            | Extra: -
+    4. qty                       | Type: int(11)              | Null: NO  | Key: -   | Default: 1               | Extra: -
+
