@@ -85,6 +85,7 @@ $query_product_list = mysqli_query($mysqli, $sql_product_list);
                                 <th>
                                     <input type="checkbox" id="checkAll" title="Chọn tất cả">
                                 </th>
+                                <th style="width: 50px; text-align: center;">STT</th>
                                 <th></th>
                                 <th>Tên sản phẩm</th>
                                 <th>Tồn kho</th>
@@ -98,7 +99,9 @@ $query_product_list = mysqli_query($mysqli, $sql_product_list);
                         </thead>
                         <tbody>
                             <?php
+                            $stt = 0;
                             while ($row = mysqli_fetch_array($query_product_list)) {
+                                $stt++;
                                 $profit_percent = isset($row['product_profit_percent']) ? (int)$row['product_profit_percent'] : 0;
                                 $is_low_stock = ((int)$row['product_quantity'] <= $low_stock_threshold);
                             ?>
@@ -113,6 +116,7 @@ $query_product_list = mysqli_query($mysqli, $sql_product_list);
                                     <td>
                                         <input type="checkbox" class="checkbox" title="Chọn sản phẩm" onclick="testChecked(); getCheckedCheckboxes();" id="<?php echo $row['product_id']; ?>">
                                     </td>
+                                    <td style="text-align: center;"><?php echo $stt; ?></td>
                                     <td><img src="modules/product/uploads/<?php echo $row['product_image']; ?>" class="product_image" alt="image"></td>
                                     <td>
                                         <?php echo $row['product_name']; ?>
@@ -131,7 +135,11 @@ $query_product_list = mysqli_query($mysqli, $sql_product_list);
                                             <?php
                                             $query_evaluate_rating = mysqli_query($mysqli, "SELECT * FROM evaluate WHERE product_id='" . $row['product_id'] . "' AND evaluate_status = 1");
 
-                                            $rate1 = 0; $rate2 = 0; $rate3 = 0; $rate4 = 0; $rate5 = 0;
+                                            $rate1 = 0;
+                                            $rate2 = 0;
+                                            $rate3 = 0;
+                                            $rate4 = 0;
+                                            $rate5 = 0;
 
                                             while ($evaluate_rating = mysqli_fetch_array($query_evaluate_rating)) {
                                                 $rate = $evaluate_rating['evaluate_rate'];

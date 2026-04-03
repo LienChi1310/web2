@@ -43,10 +43,10 @@ $query_customer_list = mysqli_query($mysqli, $sql_customer_list);
                     <table class="table table-hover table-action">
                         <thead>
                             <tr>
-                                <th></th>
                                 <th>
                                     <input type="checkbox" id="checkAll">
                                 </th>
+                                <th style="width: 50px; text-align: center;">STT</th>
                                 <th>Tên khách hàng</th>
                                 <th>Giới tính</th>
                                 <th>Email</th>
@@ -62,11 +62,9 @@ $query_customer_list = mysqli_query($mysqli, $sql_customer_list);
                             ?>
                                 <tr>
                                     <td>
-                                        
-                                    </td>
-                                    <td>
                                         <input type="checkbox" class="checkbox" onclick="testChecked(); getCheckedCheckboxes();" id="<?php echo $row['customer_id'] ?>">
                                     </td>
+                                    <td style="text-align: center;"><?php echo $i; ?></td>
                                     <td><?php echo $row['customer_name'] ?></td>
                                     <td><?php echo format_gender($row['customer_gender']) ?></td>
                                     <td><?php echo $row['customer_email'] ?></td>
@@ -205,6 +203,7 @@ $query_customer_list = mysqli_query($mysqli, $sql_customer_list);
             duration: 0,
         });
     }
+
     function showErrorToast() {
         toast({
             title: "Error",

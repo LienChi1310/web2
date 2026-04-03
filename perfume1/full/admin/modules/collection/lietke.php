@@ -23,10 +23,11 @@ $query_collection_list = mysqli_query($mysqli, $sql_collection_list);
                     <table class="table table-hover table-action">
                         <thead>
                             <tr>
-                            <th></th>
+                                <th></th>
                                 <th>
                                     <input type="checkbox" id="checkAll">
                                 </th>
+                                <th style="width: 50px; text-align: center;">STT</th>
                                 <th></th>
                                 <th>Tiêu đề</th>
                                 <th>Loại bộ sưu tập</th>
@@ -49,6 +50,7 @@ $query_collection_list = mysqli_query($mysqli, $sql_collection_list);
                                     <td>
                                         <input type="checkbox" class="checkbox" onclick="testChecked(); getCheckedCheckboxes();" id="<?php echo $row['collection_id'] ?>">
                                     </td>
+                                    <td style="text-align: center;"><?php echo $i; ?></td>
                                     <td><img src="modules/collection/uploads/<?php echo $row['collection_image'] ?>" alt=""></td>
                                     <td><?php echo $row['collection_name'] ?></td>
                                     <td><?php echo format_collection_type($row['collection_type']) ?></td>
@@ -115,6 +117,6 @@ $query_collection_list = mysqli_query($mysqli, $sql_collection_list);
         for (var i = 0; i < checkeds.length; i++) {
             checkedIds.push(checkeds[i].id);
         }
-        btnDelete.href = "modules/collection/xuly.php?data="+ JSON.stringify(checkedIds);
+        btnDelete.href = "modules/collection/xuly.php?data=" + JSON.stringify(checkedIds);
     }
 </script>

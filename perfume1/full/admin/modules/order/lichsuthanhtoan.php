@@ -84,6 +84,7 @@ if (isset($_GET['payment_type']) && $_GET['payment_type'] == 'momo') {
                                         <td>
                                             <input type="checkbox" class="checkbox" onclick="testChecked(); getCheckedCheckboxes();" id="<?php echo $row['order_code'] ?>">
                                         </td>
+                                        <td style="text-align: center;"><?php echo $i; ?></td>
                                         <td><?php echo $row['order_code'] ?></td>
                                         <td><?php echo $row['payment_date'] ?></td>
                                         <td><?php echo number_format($row['momo_amount']) ?>đ</td>
@@ -104,6 +105,7 @@ if (isset($_GET['payment_type']) && $_GET['payment_type'] == 'momo') {
                                     <th>
                                         <input type="checkbox" id="checkAll">
                                     </th>
+                                    <th style="width: 50px; text-align: center;">STT</th>
                                     <th>Mã đơn hàng</th>
                                     <th>Thời gian</th>
                                     <th>Tổng tiền</th>
@@ -128,6 +130,7 @@ if (isset($_GET['payment_type']) && $_GET['payment_type'] == 'momo') {
                                         <td>
                                             <input type="checkbox" class="checkbox" onclick="testChecked(); getCheckedCheckboxes();" id="<?php echo $row['order_code'] ?>">
                                         </td>
+                                        <td style="text-align: center;"><?php echo $i; ?></td>
                                         <td><?php echo $row['order_code'] ?></td>
                                         <td><?php echo format_datetime($row['vnp_paydate']) ?></td>
                                         <td><?php echo number_format($row['vnp_amount'] / 100) ?>đ</td>
@@ -145,12 +148,12 @@ if (isset($_GET['payment_type']) && $_GET['payment_type'] == 'momo') {
                 </div>
                 <div class="pagination d-flex justify-center">
                     <?php
-                    if (isset($_GET['payment_type']) && $_GET['payment_type']=='momo') {
+                    if (isset($_GET['payment_type']) && $_GET['payment_type'] == 'momo') {
                         $sql_pay_list = "SELECT * FROM momo ORDER BY momo_id DESC";
                     } else {
                         $sql_pay_list = "SELECT * FROM vnpay ORDER BY vnp_id DESC";
                     }
-                    
+
                     $query_pages = mysqli_query($mysqli, $sql_pay_list);
                     $row_count = mysqli_num_rows($query_pages);
                     $totalpage = ceil($row_count / 10);

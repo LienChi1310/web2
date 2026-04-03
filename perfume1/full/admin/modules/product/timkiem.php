@@ -12,7 +12,7 @@ $query_product_list = mysqli_query($mysqli, $sql_product_list);
             <div class="action_group">
                 <a href="#" class="button button-light">Export</a>
                 <button class="button button-light">Import</button>
-                
+
                 <a href="?action=product&query=product_add" class="button button-dark">Thêm sản phẩm</a>
             </div>
         </div>
@@ -40,6 +40,7 @@ $query_product_list = mysqli_query($mysqli, $sql_product_list);
                                 <th>
                                     <input type="checkbox" id="checkAll">
                                 </th>
+                                <th style="width: 50px; text-align: center;">STT</th>
                                 <th></th>
                                 <th>Tên sản phẩm</th>
                                 <th>Danh mục</th>
@@ -50,9 +51,9 @@ $query_product_list = mysqli_query($mysqli, $sql_product_list);
                         </thead>
                         <tbody>
                             <?php
-                            $i = 0;
+                            $stt = 0;
                             while ($row = mysqli_fetch_array($query_product_list)) {
-                                $i++;
+                                $stt++;
                             ?>
                                 <tr>
                                     <td>
@@ -65,6 +66,7 @@ $query_product_list = mysqli_query($mysqli, $sql_product_list);
                                     <td>
                                         <input type="checkbox" class="checkbox" onclick="testChecked(); getCheckedCheckboxes();" id="<?php echo $row['product_id'] ?>">
                                     </td>
+                                    <td style="text-align: center;"><?php echo $stt; ?></td>
                                     <td><img src="modules/product/uploads/<?php echo $row['product_image'] ?>" class="product_image" alt="image"></td>
                                     <td><?php echo $row['product_name'] ?></td>
                                     <td><?php echo $row['category_name'] ?></td>

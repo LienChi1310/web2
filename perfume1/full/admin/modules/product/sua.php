@@ -179,6 +179,7 @@ $query_product_edit = mysqli_query($mysqli, $sql_product_edit);
                                 <th>
                                     <input type="checkbox" id="checkAll" title="Chọn tất cả">
                                 </th>
+                                <th style="width: 50px; text-align: center;">STT</th>
                                 <th>Tên khách hàng</th>
                                 <th>Mức đánh giá</th>
                                 <th>Nội dung</th>
@@ -195,10 +196,11 @@ $query_product_edit = mysqli_query($mysqli, $sql_product_edit);
                                 $i++;
                             ?>
                                 <tr>
-                                    <td>#<?php echo $i; ?></td>
+                                    <td></td>
                                     <td>
                                         <input type="checkbox" class="checkbox" onclick="testChecked(); getCheckedCheckboxes();" id="<?php echo $evaluate['evaluate_id']; ?>">
                                     </td>
+                                    <td style="text-align: center;"><?php echo $i; ?></td>
                                     <td><?php echo $evaluate['account_name']; ?></td>
                                     <td>
                                         <span class="review-star-list d-flex">
@@ -306,7 +308,18 @@ if (isset($_GET['message']) && $_GET['message'] == 'success') {
     $('.select_brand').chosen();
     $('.select_capacity').chosen();
     $('.select_category').chosen();
-    CKEDITOR.replace('product_description');
+
+    // Initialize TinyMCE
+    tinymce.init({
+        selector: '#product_description',
+        height: 300,
+        menubar: 'edit view insert format tools',
+        plugins: 'link lists image table code help paste',
+        toolbar: 'formatselect | bold italic underline | bullist numlist | link image table | code | removeformat | undo redo',
+        paste_data_images: true,
+        relative_urls: false,
+        branding: false
+    });
 </script>
 
 <script>

@@ -146,7 +146,18 @@
     $('.select_brand').chosen();
     $('.select_capacity').chosen();
     $('.select_category').chosen();
-    CKEDITOR.replace('product_description');
+
+    // Initialize TinyMCE
+    tinymce.init({
+        selector: '#product_description',
+        height: 300,
+        menubar: 'edit view insert format tools',
+        plugins: 'link lists image table code help paste',
+        toolbar: 'formatselect | bold italic underline | bullist numlist | link image table | code | removeformat | undo redo',
+        paste_data_images: true,
+        relative_urls: false,
+        branding: false
+    });
 </script>
 
 <script>

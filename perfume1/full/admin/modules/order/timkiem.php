@@ -43,6 +43,7 @@ $query_order_list = mysqli_query($mysqli, $sql_order_list);
                                     <th>
                                         <input type="checkbox" id="checkAll">
                                     </th>
+                                    <th style="width: 50px; text-align: center;">STT</th>
                                     <th>Mã đơn hàng</th>
                                     <th>Thời gian</th>
                                     <th>Tên người đặt</th>
@@ -67,6 +68,7 @@ $query_order_list = mysqli_query($mysqli, $sql_order_list);
                                         <td>
                                             <input type="checkbox" class="checkbox" onclick="testChecked(); getCheckedCheckboxes();" id="<?php echo $row['order_code'] ?>">
                                         </td>
+                                        <td style="text-align: center;"><?php echo $i; ?></td>
                                         <td><?php echo $row['order_code'] ?></td>
                                         <td><?php echo $row['order_date'] ?></td>
                                         <td><?php echo $row['account_name'] ?></td>

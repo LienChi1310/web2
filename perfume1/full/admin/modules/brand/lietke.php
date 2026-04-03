@@ -28,7 +28,7 @@ if (isset($_GET['message'])) {
         padding: 10px 16px;
         border-radius: 8px;
         font-size: 14px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         opacity: 0;
         transform: translateY(-10px);
         pointer-events: none;
@@ -99,7 +99,7 @@ if (isset($_GET['message'])) {
                                 <th style="width: 60px; text-align: center;">
                                     <input type="checkbox" id="checkAll">
                                 </th>
-                                <th style="width: 100px; text-align: center;">ID</th>
+                                <th style="width: 50px; text-align: center;">STT</th>
                                 <th>Tên thương hiệu</th>
                                 <th style="width: 100px; text-align: center;">Thao tác</th>
                             </tr>
@@ -116,12 +116,11 @@ if (isset($_GET['message'])) {
                                             type="checkbox"
                                             class="checkbox"
                                             onclick="testChecked(); getCheckedCheckboxes();"
-                                            id="<?php echo $row['brand_id'] ?>"
-                                        >
+                                            id="<?php echo $row['brand_id'] ?>">
                                     </td>
 
                                     <td style="text-align: center; vertical-align: middle;">
-                                        <?php echo $row['brand_id'] ?>
+                                        <?php echo $i; ?>
                                     </td>
 
                                     <td style="vertical-align: middle; font-weight: 500;">
@@ -154,54 +153,54 @@ if (isset($_GET['message'])) {
 </div>
 
 <?php if ($toast_type !== '' && $toast_text !== ''): ?>
-<script>
-    (function() {
-        var type = "<?php echo $toast_type; ?>";
-        var text = "<?php echo $toast_text; ?>";
+    <script>
+        (function() {
+            var type = "<?php echo $toast_type; ?>";
+            var text = "<?php echo $toast_text; ?>";
 
-        if (typeof showToast === 'function') {
-            var title = (type === 'success') ? 'Success' : 'Error';
-            try {
-                showToast(title, text, type);
-            } catch (e) {
+            if (typeof showToast === 'function') {
+                var title = (type === 'success') ? 'Success' : 'Error';
+                try {
+                    showToast(title, text, type);
+                } catch (e) {
+                    createFallbackToast(title + ': ' + text);
+                }
+            } else {
+                var title = (type === 'success') ? 'Success' : 'Thông báo';
                 createFallbackToast(title + ': ' + text);
             }
-        } else {
-            var title = (type === 'success') ? 'Success' : 'Thông báo';
-            createFallbackToast(title + ': ' + text);
-        }
 
-        function createFallbackToast(fullText) {
-            var toast = document.createElement('div');
-            toast.className = 'fallback-toast';
-            toast.innerHTML = ''
-                + '<div class="fallback-toast__icon">' + (type === 'success' ? '✓' : '!') + '</div>'
-                + '<div>'
-                +   '<div class="fallback-toast__title">' + (type === 'success' ? 'Success' : 'Thông báo') + '</div>'
-                +   '<div>' + text + '</div>'
-                + '</div>'
-                + '<div class="fallback-toast__close">&times;</div>';
+            function createFallbackToast(fullText) {
+                var toast = document.createElement('div');
+                toast.className = 'fallback-toast';
+                toast.innerHTML = '' +
+                    '<div class="fallback-toast__icon">' + (type === 'success' ? '✓' : '!') + '</div>' +
+                    '<div>' +
+                    '<div class="fallback-toast__title">' + (type === 'success' ? 'Success' : 'Thông báo') + '</div>' +
+                    '<div>' + text + '</div>' +
+                    '</div>' +
+                    '<div class="fallback-toast__close">&times;</div>';
 
-            document.body.appendChild(toast);
+                document.body.appendChild(toast);
 
-            setTimeout(function () {
-                toast.classList.add('show');
-            }, 50);
-
-            var hide = function() {
-                toast.classList.remove('show');
                 setTimeout(function() {
-                    if (toast && toast.parentNode) {
-                        toast.parentNode.removeChild(toast);
-                    }
-                }, 250);
-            };
+                    toast.classList.add('show');
+                }, 50);
 
-            setTimeout(hide, 3000);
-            toast.querySelector('.fallback-toast__close').addEventListener('click', hide);
-        }
-    })();
-</script>
+                var hide = function() {
+                    toast.classList.remove('show');
+                    setTimeout(function() {
+                        if (toast && toast.parentNode) {
+                            toast.parentNode.removeChild(toast);
+                        }
+                    }, 250);
+                };
+
+                setTimeout(hide, 3000);
+                toast.querySelector('.fallback-toast__close').addEventListener('click', hide);
+            }
+        })();
+    </script>
 <?php endif; ?>
 
 <script>
@@ -247,6 +246,4 @@ if (isset($_GET['message'])) {
         }
         btnDelete.href = "modules/brand/xuly.php?data=" + JSON.stringify(checkedIds);
     }
-
-    
 </script>

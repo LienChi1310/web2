@@ -107,8 +107,7 @@ $query_order_list = mysqli_query($mysqli, $sql_order_list);
                                 name="filter_date"
                                 class="form-control"
                                 value="<?php echo htmlspecialchars($filter_date); ?>"
-                                style="min-width: 170px;"
-                            >
+                                style="min-width: 170px;">
                         </div>
 
                         <div>
@@ -118,8 +117,7 @@ $query_order_list = mysqli_query($mysqli, $sql_order_list);
                                 name="date_from"
                                 class="form-control"
                                 value="<?php echo htmlspecialchars($date_from); ?>"
-                                style="min-width: 170px;"
-                            >
+                                style="min-width: 170px;">
                         </div>
 
                         <div>
@@ -129,8 +127,7 @@ $query_order_list = mysqli_query($mysqli, $sql_order_list);
                                 name="date_to"
                                 class="form-control"
                                 value="<?php echo htmlspecialchars($date_to); ?>"
-                                style="min-width: 170px;"
-                            >
+                                style="min-width: 170px;">
                         </div>
 
                         <div>
@@ -141,8 +138,7 @@ $query_order_list = mysqli_query($mysqli, $sql_order_list);
                                 class="form-control"
                                 placeholder="Lọc theo phường / địa chỉ giao hàng"
                                 value="<?php echo htmlspecialchars($filter_addr); ?>"
-                                style="min-width: 240px;"
-                            >
+                                style="min-width: 240px;">
                         </div>
 
                         <div style="display:flex; gap:8px; align-items:flex-end; padding-top: 20px;">
@@ -157,19 +153,19 @@ $query_order_list = mysqli_query($mysqli, $sql_order_list);
                     <div class="dropdown dropdown__item">
                         <button class="btn btn-outline-dark dropdown-toggle" type="button" id="dropdownMenuSizeButton2" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <?php
-                                if ($order_status !== '' && (int)$order_status === 0) {
-                                    echo "Đơn đang xử lý";
-                                } elseif ($order_status !== '' && (int)$order_status === 1) {
-                                    echo "Đang chuẩn bị hàng";
-                                } elseif ($order_status !== '' && (int)$order_status === 2) {
-                                    echo "Đang giao hàng";
-                                } elseif ($order_status !== '' && (int)$order_status === 3) {
-                                    echo "Đã hoàn thành";
-                                } elseif ($order_status !== '' && (int)$order_status === -1) {
-                                    echo "Đơn đã hủy";
-                                } else {
-                                    echo "Tất cả trạng thái";
-                                }
+                            if ($order_status !== '' && (int)$order_status === 0) {
+                                echo "Đơn đang xử lý";
+                            } elseif ($order_status !== '' && (int)$order_status === 1) {
+                                echo "Đang chuẩn bị hàng";
+                            } elseif ($order_status !== '' && (int)$order_status === 2) {
+                                echo "Đang giao hàng";
+                            } elseif ($order_status !== '' && (int)$order_status === 3) {
+                                echo "Đã hoàn thành";
+                            } elseif ($order_status !== '' && (int)$order_status === -1) {
+                                echo "Đơn đã hủy";
+                            } else {
+                                echo "Tất cả trạng thái";
+                            }
                             ?>
                         </button>
                         <div class="dropdown-menu" aria-labelledby="dropdownMenuSizeButton2">
@@ -191,6 +187,7 @@ $query_order_list = mysqli_query($mysqli, $sql_order_list);
                                 <th>
                                     <input type="checkbox" id="checkAll">
                                 </th>
+                                <th style="width: 50px; text-align: center;">STT</th>
                                 <th>Mã đơn hàng</th>
                                 <th>Thời gian</th>
                                 <th>Tên người đặt</th>
@@ -207,37 +204,38 @@ $query_order_list = mysqli_query($mysqli, $sql_order_list);
                                 while ($row = mysqli_fetch_array($query_order_list)) {
                                     $i++;
                             ?>
-                                <tr>
-                                    <td>
-                                        <a href="?action=order&query=order_detail_online&order_code=<?php echo $row['order_code']; ?>">
-                                            <div class="icon-edit">
-                                                <img class="w-100 h-100" src="images/icon-view.png" alt="">
-                                            </div>
-                                        </a>
-                                    </td>
-                                    <td>
-                                        <input type="checkbox" class="checkbox" onclick="testChecked(); getCheckedCheckboxes();" id="<?php echo $row['order_code']; ?>">
-                                    </td>
-                                    <td><?php echo $row['order_code']; ?></td>
-                                    <td><?php echo $row['order_date']; ?></td>
-                                    <td><?php echo htmlspecialchars($row['account_name']); ?></td>
-                                    <td><?php echo htmlspecialchars($row['delivery_address'] ?? ''); ?></td>
-                                    <td><?php echo format_order_type($row['order_type']); ?></td>
-                                    <td class="text-center">
-                                        <span class="col-span <?php echo format_status_style($row['order_status']); ?>">
-                                            <?php echo format_order_status($row['order_status']); ?>
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <a href="javascript:void(0);" onclick="confirmDeleteOrder(<?php echo $row['order_code']; ?>)">
-                                            Xóa
-                                        </a>
-                                    </td>
-                                </tr>
-                            <?php
+                                    <tr>
+                                        <td>
+                                            <a href="?action=order&query=order_detail_online&order_code=<?php echo $row['order_code']; ?>">
+                                                <div class="icon-edit">
+                                                    <img class="w-100 h-100" src="images/icon-view.png" alt="">
+                                                </div>
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <input type="checkbox" class="checkbox" onclick="testChecked(); getCheckedCheckboxes();" id="<?php echo $row['order_code']; ?>">
+                                        </td>
+                                        <td style="text-align: center;"><?php echo $i; ?></td>
+                                        <td><?php echo $row['order_code']; ?></td>
+                                        <td><?php echo $row['order_date']; ?></td>
+                                        <td><?php echo htmlspecialchars($row['account_name']); ?></td>
+                                        <td><?php echo htmlspecialchars($row['delivery_address'] ?? ''); ?></td>
+                                        <td><?php echo format_order_type($row['order_type']); ?></td>
+                                        <td class="text-center">
+                                            <span class="col-span <?php echo format_status_style($row['order_status']); ?>">
+                                                <?php echo format_order_status($row['order_status']); ?>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="javascript:void(0);" onclick="confirmDeleteOrder(<?php echo $row['order_code']; ?>)">
+                                                Xóa
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <?php
                                 }
                             } else {
-                            ?>
+                                ?>
                                 <tr>
                                     <td colspan="9" class="text-center">Không có đơn hàng phù hợp.</td>
                                 </tr>
@@ -276,7 +274,9 @@ $query_order_list = mysqli_query($mysqli, $sql_order_list);
 
                             <?php for ($i = 1; $i <= $totalpage; $i++) { ?>
                                 <li class="pagination__item">
-                                    <a class="pagination__anchor <?php if ($page == $i) { echo "active"; } ?>" href="<?php echo $baseLink . '&pagenumber=' . $i; ?>">
+                                    <a class="pagination__anchor <?php if ($page == $i) {
+                                                                        echo "active";
+                                                                    } ?>" href="<?php echo $baseLink . '&pagenumber=' . $i; ?>">
                                         <?php echo $i; ?>
                                     </a>
                                 </li>

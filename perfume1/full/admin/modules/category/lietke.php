@@ -36,6 +36,7 @@ $query_category_list = mysqli_query($mysqli, $sql_category_list);
                                     <th style="width: 60px; text-align: center;">
                                         <input type="checkbox" id="checkAll">
                                     </th>
+                                    <th style="width: 50px; text-align: center;">STT</th>
                                     <th style="width: 110px; text-align: center;">Hình ảnh</th>
                                     <th style="width: 220px;">Tên danh mục</th>
                                     <th>Mô tả</th>
@@ -43,24 +44,26 @@ $query_category_list = mysqli_query($mysqli, $sql_category_list);
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php while ($row = mysqli_fetch_array($query_category_list)) { ?>
+                                <?php $stt = 0;
+                                while ($row = mysqli_fetch_array($query_category_list)) {
+                                    $stt++; ?>
                                     <tr>
                                         <td style="text-align: center; vertical-align: middle;">
                                             <input
                                                 type="checkbox"
                                                 class="checkbox"
                                                 onclick="testChecked(); getCheckedCheckboxes();"
-                                                id="<?php echo $row['category_id'] ?>"
-                                            >
+                                                id="<?php echo $row['category_id'] ?>">
                                         </td>
+
+                                        <td style="text-align: center; vertical-align: middle;"><?php echo $stt; ?></td>
 
                                         <td style="text-align: center; vertical-align: middle;">
                                             <img
                                                 src="modules/category/uploads/<?php echo $row['category_image'] ?>"
                                                 alt="<?php echo htmlspecialchars($row['category_name']); ?>"
                                                 style="width: 56px; height: 56px; object-fit: cover; border-radius: 12px; border: 1px solid #eee;"
-                                                onerror="this.src='images/no-image.png'"
-                                            >
+                                                onerror="this.src='images/no-image.png'">
                                         </td>
 
                                         <td style="vertical-align: middle; font-weight: 500;">

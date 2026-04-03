@@ -64,8 +64,7 @@ function account_status_badge($status)
                                 name="account_keyword"
                                 placeholder="Tìm theo tên hoặc email"
                                 title="Tìm theo tên hoặc email"
-                                value="<?php echo htmlspecialchars($account_keyword); ?>"
-                            >
+                                value="<?php echo htmlspecialchars($account_keyword); ?>">
                         </form>
                     </div>
                 </div>
@@ -78,6 +77,7 @@ function account_status_badge($status)
                                 <th width="60">
                                     <input type="checkbox" id="checkAll">
                                 </th>
+                                <th style="width: 50px; text-align: center;">STT</th>
                                 <th>Tên người dùng</th>
                                 <th>Email</th>
                                 <th>Số điện thoại</th>
@@ -89,8 +89,10 @@ function account_status_badge($status)
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if ($query_account_list && mysqli_num_rows($query_account_list) > 0) { ?>
-                                <?php while ($row = mysqli_fetch_array($query_account_list)) { ?>
+                            <?php $stt = 0;
+                            if ($query_account_list && mysqli_num_rows($query_account_list) > 0) { ?>
+                                <?php while ($row = mysqli_fetch_array($query_account_list)) {
+                                    $stt++; ?>
                                     <tr>
                                         <td>
                                             <?php if (isset($_SESSION['account_type']) && (int)$_SESSION['account_type'] === 2) { ?>
@@ -106,6 +108,8 @@ function account_status_badge($status)
                                             <input type="checkbox" class="checkbox" id="<?php echo $row['account_id']; ?>">
                                         </td>
 
+                                        <td style="text-align: center;"><?php echo $stt; ?></td>
+
                                         <td><?php echo htmlspecialchars($row['account_name']); ?></td>
                                         <td><?php echo htmlspecialchars($row['account_email']); ?></td>
                                         <td><?php echo htmlspecialchars($row['account_phone'] ?? ''); ?></td>
@@ -117,16 +121,14 @@ function account_status_badge($status)
                                                 <div class="d-flex flex-wrap" style="gap:8px;">
                                                     <a
                                                         href="index.php?action=account&query=account_edit&account_id=<?php echo $row['account_id']; ?>"
-                                                        class="btn btn-outline-primary btn-sm"
-                                                    >
+                                                        class="btn btn-outline-primary btn-sm">
                                                         Sửa
                                                     </a>
 
                                                     <a
                                                         href="modules/account/xuly.php?reset_password=1&account_id=<?php echo $row['account_id']; ?>"
                                                         class="btn btn-outline-warning btn-sm"
-                                                        onclick="return confirm('Đặt lại mật khẩu tài khoản này về 123456?');"
-                                                    >
+                                                        onclick="return confirm('Đặt lại mật khẩu tài khoản này về 123456?');">
                                                         Reset mật khẩu
                                                     </a>
 
@@ -134,16 +136,14 @@ function account_status_badge($status)
                                                         <a
                                                             href="modules/account/xuly.php?toggle_status=1&account_id=<?php echo $row['account_id']; ?>&status=0"
                                                             class="btn btn-outline-danger btn-sm"
-                                                            onclick="return confirm('Bạn có chắc muốn khóa tài khoản này?');"
-                                                        >
+                                                            onclick="return confirm('Bạn có chắc muốn khóa tài khoản này?');">
                                                             Khóa
                                                         </a>
                                                     <?php } else { ?>
                                                         <a
                                                             href="modules/account/xuly.php?toggle_status=1&account_id=<?php echo $row['account_id']; ?>&status=1"
                                                             class="btn btn-outline-success btn-sm"
-                                                            onclick="return confirm('Bạn có chắc muốn mở khóa tài khoản này?');"
-                                                        >
+                                                            onclick="return confirm('Bạn có chắc muốn mở khóa tài khoản này?');">
                                                             Mở khóa
                                                         </a>
                                                     <?php } ?>
