@@ -16,7 +16,32 @@ $low_stock_threshold = isset($_GET['low_stock_threshold']) && $_GET['low_stock_t
     ? (int)$_GET['low_stock_threshold']
     : 5;
 
-$sql_product_list = "SELECT * FROM product ORDER BY product_id DESC LIMIT $begin,10";
+// Handle sorting (default: newest products first)
+$sort_column = 'product_id';
+$sort_order = 'DESC';
+$allowed_sorts = ['product_name', 'product_quantity', 'product_price_import', 'product_profit_percent', 'product_price', 'product_sale', 'product_id'];
+
+if (isset($_GET['sort']) && in_array($_GET['sort'], $allowed_sorts)) {
+    $sort_column = $_GET['sort'];
+    $sort_order = (isset($_GET['order']) && $_GET['order'] === 'ASC') ? 'ASC' : 'DESC';
+}
+
+// Handle status filter
+$status_filter = '';
+if (isset($_GET['status']) && $_GET['status'] !== '') {
+    $status = (int)$_GET['status'];
+    $status_filter = " AND product_status = $status";
+}
+
+// Handle search filter
+$search_filter = '';
+$search_keyword = '';
+if (isset($_GET['product_search']) && $_GET['product_search'] !== '') {
+    $search_keyword = $_GET['product_search'];
+    $search_filter = " AND product_name LIKE '%" . mysqli_real_escape_string($mysqli, $search_keyword) . "%'";
+}
+
+$sql_product_list = "SELECT * FROM product WHERE 1=1 $status_filter $search_filter ORDER BY $sort_column $sort_order LIMIT $begin,10";
 $query_product_list = mysqli_query($mysqli, $sql_product_list);
 ?>
 
@@ -57,9 +82,25 @@ $query_product_list = mysqli_query($mysqli, $sql_product_list);
         <form method="GET" action="index.php" class="d-flex align-items-center" style="gap:10px; flex-wrap:wrap;">
             <input type="hidden" name="action" value="product">
             <input type="hidden" name="query" value="product_list">
+
             <label class="mb-0">Ngưỡng sắp hết hàng:</label>
             <input type="number" min="0" name="low_stock_threshold" class="form-control" style="width:120px;" value="<?php echo $low_stock_threshold; ?>">
+
+            <label class="mb-0">Tình trạng:</label>
+            <select name="status" class="form-control" style="width: 150px;">
+                <option value="">-- Tất cả --</option>
+                <option value="1" <?php echo (isset($_GET['status']) && $_GET['status'] === '1') ? 'selected' : ''; ?>>Đang bán</option>
+                <option value="0" <?php echo (isset($_GET['status']) && $_GET['status'] === '0') ? 'selected' : ''; ?>>Tạm dừng</option>
+            </select>
+
             <button type="submit" class="btn btn-primary btn-sm">Áp dụng</button>
+
+            <div style="flex: 1; text-align: right;">
+                <div class="input__search p-relative" style="display: inline-block; width: 250px;">
+                    <i class="icon-search p-absolute"></i>
+                    <input type="text" id="productSearchInput" name="product_search" class="form-control" title="Nhập tên sản phẩm để tìm kiếm" placeholder="Tìm kiếm sản phẩm..." value="<?php echo isset($_GET['product_search']) ? htmlspecialchars($_GET['product_search']) : ''; ?>">
+                </div>
+            </div>
         </form>
     </div>
 </div>
@@ -68,14 +109,6 @@ $query_product_list = mysqli_query($mysqli, $sql_product_list);
     <div class="col-lg-12 grid-margin stretch-card">
         <div class="card">
             <div class="card-body">
-                <div class="main-pane-top d-flex space-between align-center justify-center">
-                    <div class="input__search p-relative">
-                        <form class="search-form" action="?action=product&query=product_search" method="POST">
-                            <i class="icon-search p-absolute"></i>
-                            <input type="search" class="form-control" title="Nhập vào tên sản phẩm để tìm kiếm" name="product_search" placeholder="Search Here">
-                        </form>
-                    </div>
-                </div>
 
                 <div class="table-responsive">
                     <table class="table table-hover table-action">
@@ -87,14 +120,13 @@ $query_product_list = mysqli_query($mysqli, $sql_product_list);
                                 </th>
                                 <th style="width: 50px; text-align: center;">STT</th>
                                 <th></th>
-                                <th>Tên sản phẩm</th>
-                                <th>Tồn kho</th>
-                                <th>Giá vốn</th>
-                                <th>% lợi nhuận</th>
-                                <th>Giá bán</th>
-                                <th>Đánh giá</th>
+                                <th style="cursor: pointer;"><a href="?action=product&query=product_list&sort=product_name&order=<?php echo ($sort_column === 'product_name' && $sort_order === 'ASC') ? 'DESC' : 'ASC'; ?>&low_stock_threshold=<?php echo $low_stock_threshold; ?>&status=<?php echo isset($_GET['status']) ? urlencode($_GET['status']) : ''; ?>&product_search=<?php echo isset($_GET['product_search']) ? urlencode($_GET['product_search']) : ''; ?>" style="color: inherit; text-decoration: none;">Tên sản phẩm <?php if ($sort_column === 'product_name') echo ($sort_order === 'ASC') ? '↑' : '↓'; ?></a></th>
+                                <th style="cursor: pointer;"><a href="?action=product&query=product_list&sort=product_quantity&order=<?php echo ($sort_column === 'product_quantity' && $sort_order === 'ASC') ? 'DESC' : 'ASC'; ?>&low_stock_threshold=<?php echo $low_stock_threshold; ?>&status=<?php echo isset($_GET['status']) ? urlencode($_GET['status']) : ''; ?>&product_search=<?php echo isset($_GET['product_search']) ? urlencode($_GET['product_search']) : ''; ?>" style="color: inherit; text-decoration: none;">Tồn kho <?php if ($sort_column === 'product_quantity') echo ($sort_order === 'ASC') ? '↑' : '↓'; ?></a></th>
+                                <th style="cursor: pointer;"><a href="?action=product&query=product_list&sort=product_price_import&order=<?php echo ($sort_column === 'product_price_import' && $sort_order === 'ASC') ? 'DESC' : 'ASC'; ?>&low_stock_threshold=<?php echo $low_stock_threshold; ?>&status=<?php echo isset($_GET['status']) ? urlencode($_GET['status']) : ''; ?>&product_search=<?php echo isset($_GET['product_search']) ? urlencode($_GET['product_search']) : ''; ?>" style="color: inherit; text-decoration: none;">Giá vốn <?php if ($sort_column === 'product_price_import') echo ($sort_order === 'ASC') ? '↑' : '↓'; ?></a></th>
+                                <th style="cursor: pointer;"><a href="?action=product&query=product_list&sort=product_profit_percent&order=<?php echo ($sort_column === 'product_profit_percent' && $sort_order === 'ASC') ? 'DESC' : 'ASC'; ?>&low_stock_threshold=<?php echo $low_stock_threshold; ?>&status=<?php echo isset($_GET['status']) ? urlencode($_GET['status']) : ''; ?>&product_search=<?php echo isset($_GET['product_search']) ? urlencode($_GET['product_search']) : ''; ?>" style="color: inherit; text-decoration: none;">% lợi nhuận <?php if ($sort_column === 'product_profit_percent') echo ($sort_order === 'ASC') ? '↑' : '↓'; ?></a></th>
+                                <th style="cursor: pointer;"><a href="?action=product&query=product_list&sort=product_price&order=<?php echo ($sort_column === 'product_price' && $sort_order === 'ASC') ? 'DESC' : 'ASC'; ?>&low_stock_threshold=<?php echo $low_stock_threshold; ?>&status=<?php echo isset($_GET['status']) ? urlencode($_GET['status']) : ''; ?>&product_search=<?php echo isset($_GET['product_search']) ? urlencode($_GET['product_search']) : ''; ?>" style="color: inherit; text-decoration: none;">Giá bán <?php if ($sort_column === 'product_price') echo ($sort_order === 'ASC') ? '↑' : '↓'; ?></a></th>
                                 <th>Tình trạng</th>
-                                <th>Sale</th>
+                                <th style="cursor: pointer;"><a href="?action=product&query=product_list&sort=product_sale&order=<?php echo ($sort_column === 'product_sale' && $sort_order === 'ASC') ? 'DESC' : 'ASC'; ?>&low_stock_threshold=<?php echo $low_stock_threshold; ?>&status=<?php echo isset($_GET['status']) ? urlencode($_GET['status']) : ''; ?>&product_search=<?php echo isset($_GET['product_search']) ? urlencode($_GET['product_search']) : ''; ?>" style="color: inherit; text-decoration: none;">Sale <?php if ($sort_column === 'product_sale') echo ($sort_order === 'ASC') ? '↑' : '↓'; ?></a></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -105,7 +137,7 @@ $query_product_list = mysqli_query($mysqli, $sql_product_list);
                                 $profit_percent = isset($row['product_profit_percent']) ? (int)$row['product_profit_percent'] : 0;
                                 $is_low_stock = ((int)$row['product_quantity'] <= $low_stock_threshold);
                             ?>
-                                <tr <?php if ($is_low_stock) echo 'style="background:#fff8e1;"'; ?>>
+                                <tr <?php if ($is_low_stock) echo 'class="low-stock"'; ?>>
                                     <td>
                                         <a href="?action=product&query=product_edit&product_id=<?php echo $row['product_id']; ?>">
                                             <div class="icon-edit" title="Sửa sản phẩm">
@@ -131,47 +163,6 @@ $query_product_list = mysqli_query($mysqli, $sql_product_list);
                                         <?php echo number_format($row['product_price']) . ' ₫'; ?>
                                     </td>
                                     <td>
-                                        <span class="review-star-list d-flex">
-                                            <?php
-                                            $query_evaluate_rating = mysqli_query($mysqli, "SELECT * FROM evaluate WHERE product_id='" . $row['product_id'] . "' AND evaluate_status = 1");
-
-                                            $rate1 = 0;
-                                            $rate2 = 0;
-                                            $rate3 = 0;
-                                            $rate4 = 0;
-                                            $rate5 = 0;
-
-                                            while ($evaluate_rating = mysqli_fetch_array($query_evaluate_rating)) {
-                                                $rate = $evaluate_rating['evaluate_rate'];
-
-                                                if ($rate == 1) $rate1++;
-                                                elseif ($rate == 2) $rate2++;
-                                                elseif ($rate == 3) $rate3++;
-                                                elseif ($rate == 4) $rate4++;
-                                                elseif ($rate == 5) $rate5++;
-                                            }
-
-                                            $total_rate = $rate1 + $rate2 + $rate3 + $rate4 + $rate5;
-                                            if ($total_rate != 0) {
-                                                $rate_avg = ($rate1 * 1 + $rate2 * 2 + $rate3 * 3 + $rate4 * 4 + $rate5 * 5) / $total_rate;
-                                                $rate_avg = round($rate_avg, 1);
-                                            } else {
-                                                $rate_avg = 0;
-                                            }
-
-                                            for ($i = 0; $i < 5; $i++) {
-                                                if ($i < $rate_avg) {
-                                            ?>
-                                                    <div class="rating-star"></div>
-                                                <?php } else { ?>
-                                                    <div class="rating-star rating-off"></div>
-                                            <?php
-                                                }
-                                            }
-                                            ?>
-                                        </span>
-                                    </td>
-                                    <td>
                                         <?php if ($row['product_status'] == 1) { ?>
                                             <div class="product__status product__status--active">
                                                 <span class="show-status">Đang bán</span>
@@ -192,39 +183,51 @@ $query_product_list = mysqli_query($mysqli, $sql_product_list);
                 <div class="pagination d-flex justify-center">
                     <?php
                     if (isset($_GET['category_id'])) {
-                        $query_pages = mysqli_query($mysqli, "SELECT * FROM product JOIN category ON product.product_category = category.category_id WHERE product_category = '" . $_GET['category_id'] . "' ORDER BY product_id DESC");
+                        $query_pages = mysqli_query($mysqli, "SELECT * FROM product JOIN category ON product.product_category = category.category_id WHERE product_category = '" . $_GET['category_id'] . "' $status_filter $search_filter ORDER BY product_id DESC");
                     } else {
-                        $query_pages = mysqli_query($mysqli, "SELECT * FROM product ORDER BY product_id DESC");
+                        $query_pages = mysqli_query($mysqli, "SELECT * FROM product WHERE 1=1 $status_filter $search_filter ORDER BY product_id DESC");
                     }
                     $row_count = mysqli_num_rows($query_pages);
                     $totalpage = ceil($row_count / 10);
                     $currentLink = "index.php?action=product&query=product_list&low_stock_threshold=" . $low_stock_threshold;
+                    if (isset($_GET['status']) && $_GET['status'] !== '') {
+                        $currentLink .= "&status=" . urlencode($_GET['status']);
+                    }
+                    if (isset($_GET['product_search']) && $_GET['product_search'] !== '') {
+                        $currentLink .= "&product_search=" . urlencode($_GET['product_search']);
+                    }
                     ?>
-                    <ul class="pagination__items d-flex align-center justify-center">
-                        <?php if ($page != 1) { ?>
-                            <li class="pagination__item">
-                                <a class="d-flex align-center" href="<?php echo $currentLink . '&pagenumber=' . ($page - 1); ?>">
-                                    <img src="images/arrow-left.svg" alt="">
-                                </a>
-                            </li>
-                        <?php } ?>
+                    <?php if ($row_count == 0) { ?>
+                        <div class="alert alert-info" style="margin: 20px auto; text-align: center; width: 100%;">
+                            <strong>Không có sản phẩm nào</strong> phù hợp với bộ lọc của bạn
+                        </div>
+                    <?php } else { ?>
+                        <ul class="pagination__items d-flex align-center justify-center">
+                            <?php if ($page != 1) { ?>
+                                <li class="pagination__item">
+                                    <a class="d-flex align-center" href="<?php echo $currentLink . '&pagenumber=' . ($page - 1); ?>">
+                                        <img src="images/arrow-left.svg" alt="">
+                                    </a>
+                                </li>
+                            <?php } ?>
 
-                        <?php for ($i = 1; $i <= $totalpage; $i++) { ?>
-                            <li class="pagination__item">
-                                <a class="pagination__anchor <?php if ($page == $i) echo "active"; ?>" href="<?php echo $currentLink . '&pagenumber=' . $i; ?>">
-                                    <?php echo $i; ?>
-                                </a>
-                            </li>
-                        <?php } ?>
+                            <?php for ($i = 1; $i <= $totalpage; $i++) { ?>
+                                <li class="pagination__item">
+                                    <a class="pagination__anchor <?php if ($page == $i) echo "active"; ?>" href="<?php echo $currentLink . '&pagenumber=' . $i; ?>">
+                                        <?php echo $i; ?>
+                                    </a>
+                                </li>
+                            <?php } ?>
 
-                        <?php if ($page != $totalpage) { ?>
-                            <li class="pagination__item">
-                                <a class="d-flex align-center" href="<?php echo $currentLink . '&pagenumber=' . ($page + 1); ?>">
-                                    <img src="images/icon-nextlink.svg" alt="">
-                                </a>
-                            </li>
-                        <?php } ?>
-                    </ul>
+                            <?php if ($page != $totalpage && $totalpage > 0) { ?>
+                                <li class="pagination__item">
+                                    <a class="d-flex align-center" href="<?php echo $currentLink . '&pagenumber=' . ($page + 1); ?>">
+                                        <img src="images/icon-nextlink.svg" alt="">
+                                    </a>
+                                </li>
+                            <?php } ?>
+                        </ul>
+                    <?php } ?>
                 </div>
 
             </div>
@@ -359,4 +362,22 @@ if (isset($_GET['message']) && $_GET['message'] == 'success') {
 
 <script>
     window.history.pushState(null, "", "index.php?action=product&query=product_list&low_stock_threshold=<?php echo $low_stock_threshold; ?>");
+</script>
+
+<script>
+    // Auto-search functionality with debounce
+    var searchInput = document.getElementById('productSearchInput');
+    var searchForm = searchInput ? searchInput.closest('form') : null;
+    var searchTimeout;
+
+    if (searchInput && searchForm) {
+        searchInput.addEventListener('keyup', function() {
+            clearTimeout(searchTimeout);
+
+            // Auto-submit form after user stops typing for 500ms
+            searchTimeout = setTimeout(function() {
+                searchForm.submit();
+            }, 500);
+        });
+    }
 </script>

@@ -32,12 +32,12 @@
 }
 
 /* On mouse-over, add a grey background color */
-.container:hover input ~ .checkmark {
+.container:hover input~.checkmark {
   background-color: #ccc;
 }
 
 /* When the checkbox is checked, add a blue background */
-.container input:checked ~ .checkmark {
+.container input:checked~.checkmark {
   background-color: #2196f3;
 }
 
@@ -49,7 +49,7 @@
 }
 
 /* Show the checkmark when checked */
-.container input:checked ~ .checkmark:after {
+.container input:checked~.checkmark:after {
   display: block;
 }
 
@@ -80,7 +80,7 @@
 .button-light {
   background-color: #f4f5f7;
   color: #121212;
-} 
+}
 
 .button-light:hover {
   color: #121212;
@@ -88,9 +88,10 @@
 }
 
 .button-dark {
-  background-color: #1F3BB3;;
+  background-color: #1F3BB3;
+  ;
   color: #f0f0f0;
-} 
+}
 
 .button-dark:hover {
   color: #f0f0f0;
@@ -271,7 +272,7 @@ table tfoot {
 
 /* checkout */
 
-.checkout .col + .col {
+.checkout .col+.col {
   border-left: solid 1px #d0d0d0;
 }
 
@@ -290,7 +291,7 @@ table tfoot {
   margin-bottom: 20px;
 }
 
-.info__item + .info__item {
+.info__item+.info__item {
   border-top: solid 1px #d0d0d0;
 }
 
@@ -337,8 +338,7 @@ table tfoot {
   opacity: .7;
 }
 
-.checkout__items {
-}
+.checkout__items {}
 
 .checkout__item {
   padding: 15px 0;
@@ -369,8 +369,7 @@ table tfoot {
   padding: 0 10px;
 }
 
-.checkout__price {
-}
+.checkout__price {}
 
 .checkout__bottom {
   margin-top: 10px;
@@ -458,6 +457,29 @@ table tfoot {
   background-color: #fefefe;
 }
 
+/* Product name column - responsive */
+.table-action td:nth-child(5) {
+  max-width: 250px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+.table-action th:nth-child(5) {
+  max-width: 250px;
+}
+
+/* Responsive table adjustments */
+.table-action th,
+.table-action td {
+  padding: 8px 6px;
+  font-size: 13px;
+}
+
+.table-action td:nth-child(4) img {
+  max-width: 40px;
+  height: auto;
+}
 
 .icon-edit {
   width: 20px;
@@ -499,6 +521,14 @@ table tfoot {
   margin: 0;
 }
 
+/* Low stock row styling */
+tr.low-stock,
+tr.low-stock td,
+tr.low-stock td:nth-child(1),
+tr.low-stock td:nth-child(2) {
+  background-color: #fff8e1 !important;
+}
+
 .dialog__container {
   z-index: 10000;
   border-radius: 10px;
@@ -510,6 +540,7 @@ table tfoot {
   min-height: 150px;
   background-color: #fff;
 }
+
 .dialog__header {
   padding: 10px;
   border-bottom: solid 1px #ccc;
@@ -542,8 +573,7 @@ table tfoot {
   border: solid 1px #e4e4e4;
 }
 
-.receipt__info td {
-}
+.receipt__info td {}
 
 .receipt__table {
   border-top: solid 1px #e4e4e4;
@@ -769,31 +799,33 @@ table tfoot {
 }
 
 /* upload preview photo  */
-.image-box{
+.image-box {
   background-color: #ffffff;
 }
 
-.image-container{
+.image-container {
   margin: 0 auto 30px auto;
 }
-.image-container img{
+
+.image-container img {
   display: block;
   position: relative;
   max-width: 100%;
   max-height: 400px;
   margin: auto;
 }
-figcaption{
+
+figcaption {
   margin: 20px 0 30px 0;
   text-align: center;
   color: #2a292a;
-} 
+}
 
 .d-none {
   display: none;
 }
 
-.label-for-image{
+.label-for-image {
   display: block;
   position: relative;
   background-color: #1F3BB3;
