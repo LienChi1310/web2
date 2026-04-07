@@ -1,5 +1,6 @@
 <?php
-$keyword = trim($_GET['keyword'] ?? '');
+$keyword = trim((string)($_GET['keyword'] ?? ''));
+$keyword = preg_replace('/\s+/u', ' ', $keyword);
 $category_id = (int)($_GET['category_id'] ?? 0);
 $price_from = (float)($_GET['price_from'] ?? 0);
 $price_to = (float)($_GET['price_to'] ?? 0);
@@ -8,36 +9,84 @@ $page_num = max(1, (int)($_GET['p'] ?? 1));
 $limit = 8;
 $offset = ($page_num - 1) * $limit;
 
-$where = ["1=1"];
+$where = ["p.product_status = 1"];
 
 if ($keyword !== '') {
-    $keyword_safe = mysqli_real_escape_string($mysqli, $keyword);
-    $where[] = "product_name LIKE '%{$keyword_safe}%'";
+    $keyword_lower = mb_strtolower($keyword, 'UTF-8');
+
+    // Tách token theo khoảng trắng và các ký tự phân cách phổ biến như '/', ','...
+    $parts = preg_split('/[\s\/,;|+\-]+/u', $keyword_lower);
+    $parts = is_array($parts) ? array_values(array_filter(array_map('trim', $parts), static function ($v) {
+        return $v !== '';
+    })) : [];
+
+    $has_male = in_array('nam', $parts, true);
+    $has_female = in_array('nu', $parts, true) || in_array('nữ', $parts, true);
+
+    // Nếu chỉ có 1 giới tính trong từ khóa thì lọc theo category_id cố định.
+    // Quy ước của dự án: nam = 2, nữ = 3.
+    if ($has_male xor $has_female) {
+        if ($has_male) {
+            $where[] = "p.product_category = 2";
+        } else {
+            $where[] = "p.product_category = 3";
+        }
+    }
+
+    $keyword_parts = preg_split('/[\s\/,;|+\-]+/u', $keyword);
+    foreach ($keyword_parts as $part) {
+        $part = trim((string)$part);
+        if ($part === '') {
+            continue;
+        }
+
+        $part_lower = mb_strtolower($part, 'UTF-8');
+        if (in_array($part_lower, ['nam', 'nu', 'nữ'], true)) {
+            continue;
+        }
+
+        $part_safe = mysqli_real_escape_string($mysqli, $part);
+        $where[] = "(p.product_name LIKE '%{$part_safe}%' OR c.category_name LIKE '%{$part_safe}%' OR b.brand_name LIKE '%{$part_safe}%')";
+    }
 }
 
 if ($category_id > 0) {
-    $where[] = "category_id = {$category_id}";
+    $where[] = "p.product_category = {$category_id}";
 }
 
 if ($price_from > 0) {
-    $where[] = "product_price >= {$price_from}";
+    $where[] = "p.product_price >= {$price_from}";
 }
 
 if ($price_to > 0) {
-    $where[] = "product_price <= {$price_to}";
+    $where[] = "p.product_price <= {$price_to}";
 }
 
 $where_sql = implode(' AND ', $where);
 
 /* Đếm tổng số sản phẩm */
-$sql_count = "SELECT COUNT(*) AS total FROM product WHERE {$where_sql}";
+$sql_count = "
+    SELECT COUNT(*) AS total
+    FROM product p
+    LEFT JOIN category c ON p.product_category = c.category_id
+    LEFT JOIN brand b ON p.product_brand = b.brand_id
+    WHERE {$where_sql}
+";
 $query_count = mysqli_query($mysqli, $sql_count);
 $row_count = mysqli_fetch_assoc($query_count);
 $total_rows = (int)($row_count['total'] ?? 0);
 $total_pages = max(1, (int)ceil($total_rows / $limit));
 
 /* Lấy danh sách sản phẩm */
-$sql_product_list = "SELECT * FROM product WHERE {$where_sql} ORDER BY product_id DESC LIMIT {$offset}, {$limit}";
+$sql_product_list = "
+    SELECT p.*
+    FROM product p
+    LEFT JOIN category c ON p.product_category = c.category_id
+    LEFT JOIN brand b ON p.product_brand = b.brand_id
+    WHERE {$where_sql}
+    ORDER BY p.product_id DESC
+    LIMIT {$offset}, {$limit}
+";
 $query_product_list = mysqli_query($mysqli, $sql_product_list);
 ?>
 
