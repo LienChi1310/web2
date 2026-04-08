@@ -1,10 +1,8 @@
 <?php
 if (isset($_GET['pagenumber'])) {
     $page = (int)$_GET['pagenumber'];
-    $url_page = '&pagenumber=' . $page;
 } else {
     $page = 1;
-    $url_page = '';
 }
 
 if ($page <= 1) {
@@ -19,12 +17,34 @@ $filter_date  = isset($_GET['filter_date']) ? trim($_GET['filter_date']) : '';
 $date_from    = isset($_GET['date_from']) ? trim($_GET['date_from']) : '';
 $date_to      = isset($_GET['date_to']) ? trim($_GET['date_to']) : '';
 $filter_addr  = isset($_GET['filter_addr']) ? trim($_GET['filter_addr']) : '';
+$order_search = isset($_GET['order_search']) ? trim($_GET['order_search']) : '';
+
+// Logic: if filter_date is set, ignore date_from/date_to
+if ($filter_date !== '') {
+    $date_from = '';
+    $date_to = '';
+}
+// Logic: if date_from or date_to is set, ignore filter_date
+if ($date_from !== '' || $date_to !== '') {
+    $filter_date = '';
+}
+
+// Handle sorting
+$sort_column = 'order_date';
+$sort_order = 'DESC';
+$allowed_sorts = ['order_date', 'account_name', 'delivery_address', 'order_id'];
+
+if (isset($_GET['sort']) && in_array($_GET['sort'], $allowed_sorts)) {
+    $sort_column = $_GET['sort'];
+    $sort_order = (isset($_GET['order']) && $_GET['order'] === 'ASC') ? 'ASC' : 'DESC';
+}
 
 $url_status = ($order_status !== '') ? '&order_status=' . urlencode($order_status) : '';
 $url_date   = ($filter_date !== '') ? '&filter_date=' . urlencode($filter_date) : '';
 $url_from   = ($date_from !== '') ? '&date_from=' . urlencode($date_from) : '';
 $url_to     = ($date_to !== '') ? '&date_to=' . urlencode($date_to) : '';
 $url_addr   = ($filter_addr !== '') ? '&filter_addr=' . urlencode($filter_addr) : '';
+$url_search = ($order_search !== '') ? '&order_search=' . urlencode($order_search) : '';
 
 $where = [];
 $where[] = "1=1";
@@ -32,8 +52,6 @@ $where[] = "1=1";
 if ($order_status !== '') {
     $order_status_int = (int)$order_status;
     $where[] = "orders.order_status = {$order_status_int}";
-} else {
-    $where[] = "orders.order_status >= -1";
 }
 
 if ($filter_date !== '') {
@@ -56,6 +74,11 @@ if ($filter_addr !== '') {
     $where[] = "delivery.delivery_address LIKE '%{$filter_addr_safe}%'";
 }
 
+if ($order_search !== '') {
+    $order_search_safe = mysqli_real_escape_string($mysqli, $order_search);
+    $where[] = "(orders.order_code LIKE '%{$order_search_safe}%' OR account.account_name LIKE '%{$order_search_safe}%' OR delivery.delivery_address LIKE '%{$order_search_safe}%')";
+}
+
 $where_sql = implode(' AND ', $where);
 
 $sql_order_list = "
@@ -64,7 +87,7 @@ $sql_order_list = "
     JOIN account ON orders.account_id = account.account_id
     LEFT JOIN delivery ON orders.delivery_id = delivery.delivery_id
     WHERE {$where_sql}
-    ORDER BY orders.order_id DESC
+    ORDER BY {$sort_column} {$sort_order}
     LIMIT {$begin},10
 ";
 $query_order_list = mysqli_query($mysqli, $sql_order_list);
@@ -74,9 +97,97 @@ $query_order_list = mysqli_query($mysqli, $sql_order_list);
         <div class="header__list d-flex space-between align-center">
             <h3 class="card-title" style="margin: 0;">Danh sách đơn hàng online</h3>
             <div class="action_group">
-                <a href="#" class="button button-dark">Export</a>
+                <a href="modules/order/export.php" class="button button-dark">Export</a>
             </div>
         </div>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col">
+        <form method="GET" action="index.php" class="d-flex align-items-center" style="gap:15px; flex-wrap:wrap;">
+            <input type="hidden" name="action" value="order">
+            <input type="hidden" name="query" value="order_list">
+
+            <!-- Filter Date Options with Radio -->
+            <div style="display: flex; align-items: flex-end; gap: 15px; flex-wrap: wrap;">
+                <!-- Option 1: Filter by single date -->
+                <div style="display: flex; align-items: flex-end; gap: 8px;">
+                    <label style="margin-bottom: 0; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                        <input type="radio" name="date_filter_type" value="single" <?php echo ($date_from === '' && $date_to === '' ? 'checked' : ''); ?> onchange="document.getElementById('dateRangeFields').style.opacity = '0.5'; document.getElementById('dateRangeFields').style.pointerEvents = 'none'; document.getElementById('singleDateField').style.opacity = '1'; document.getElementById('singleDateField').style.pointerEvents = 'auto';">
+                        <span style="font-size: 12px;">Lọc 1 ngày</span>
+                    </label>
+                    <div id="singleDateField" style="opacity: <?php echo ($filter_date !== '' ? '1' : '0.5'); ?>; pointer-events: <?php echo ($filter_date !== '' ? 'auto' : 'none'); ?>; transition: opacity 0.3s;">
+                        <input type="date" name="filter_date" class="form-control" value="<?php echo htmlspecialchars($filter_date); ?>" style="min-width: 150px; height: 38px;">
+                    </div>
+                </div>
+
+                <!-- Option 2: Filter by date range -->
+                <div style="display: flex; align-items: flex-end; gap: 8px;">
+                    <label style="margin-bottom: 0; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                        <input type="radio" name="date_filter_type" value="range" <?php echo ($date_from !== '' || $date_to !== '' ? 'checked' : ''); ?> onchange="document.getElementById('singleDateField').style.opacity = '0.5'; document.getElementById('singleDateField').style.pointerEvents = 'none'; document.getElementById('dateRangeFields').style.opacity = '1'; document.getElementById('dateRangeFields').style.pointerEvents = 'auto';">
+                        <span style="font-size: 12px;">Từ ngày</span>
+                    </label>
+                    <div id="dateRangeFields" style="display: flex; gap: 8px; opacity: <?php echo ($date_from !== '' || $date_to !== '' ? '1' : '0.5'); ?>; pointer-events: <?php echo ($date_from !== '' || $date_to !== '' ? 'auto' : 'none'); ?>; transition: opacity 0.3s;">
+                        <input type="date" name="date_from" class="form-control" value="<?php echo htmlspecialchars($date_from); ?>" style="min-width: 150px; height: 38px;">
+                        <label style="margin-bottom: 0; display: flex; align-items: center; font-size: 12px;">đến</label>
+                        <input type="date" name="date_to" class="form-control" value="<?php echo htmlspecialchars($date_to); ?>" style="min-width: 150px; height: 38px;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Address Filter -->
+            <div>
+                <input type="text" name="filter_addr" class="form-control" placeholder="Phường / địa chỉ" value="<?php echo htmlspecialchars($filter_addr); ?>" style="min-width: 200px; height: 38px; border: 1px solid #ddd;">
+            </div>
+
+            <!-- Filter Button - Only for date options -->
+            <button type="submit" class="btn btn-primary btn-sm" style="height: 38px;">Lọc</button>
+            <a href="index.php?action=order&query=order_list" class="btn btn-light btn-sm" style="height: 38px; display: flex; align-items: center;">Xóa lọc</a>
+        </form>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col">
+        <form method="GET" action="index.php" class="d-flex align-items-center" style="gap:10px; flex-wrap:wrap;">
+            <input type="hidden" name="action" value="order">
+            <input type="hidden" name="query" value="order_list">
+
+            <!-- Preserve date filter values -->
+            <?php if ($filter_date !== '') { ?>
+                <input type="hidden" name="filter_date" value="<?php echo htmlspecialchars($filter_date); ?>">
+                <input type="hidden" name="date_filter_type" value="single">
+            <?php } ?>
+            <?php if ($date_from !== '') { ?>
+                <input type="hidden" name="date_from" value="<?php echo htmlspecialchars($date_from); ?>">
+                <input type="hidden" name="date_filter_type" value="range">
+            <?php } ?>
+            <?php if ($date_to !== '') { ?>
+                <input type="hidden" name="date_to" value="<?php echo htmlspecialchars($date_to); ?>">
+                <input type="hidden" name="date_filter_type" value="range">
+            <?php } ?>
+            <?php if ($filter_addr !== '') { ?>
+                <input type="hidden" name="filter_addr" value="<?php echo htmlspecialchars($filter_addr); ?>">
+            <?php } ?>
+
+            <label class="mb-0">Tình trạng:</label>
+            <select name="order_status" class="form-control" style="width: 200px;" onchange="this.form.submit();">
+                <option value="">-- Tất cả --</option>
+                <option value="0" <?php echo (isset($_GET['order_status']) && $_GET['order_status'] === '0') ? 'selected' : ''; ?>>Đang xử lý</option>
+                <option value="1" <?php echo (isset($_GET['order_status']) && $_GET['order_status'] === '1') ? 'selected' : ''; ?>>Đang chuẩn bị hàng</option>
+                <option value="2" <?php echo (isset($_GET['order_status']) && $_GET['order_status'] === '2') ? 'selected' : ''; ?>>Đang giao hàng</option>
+                <option value="3" <?php echo (isset($_GET['order_status']) && $_GET['order_status'] === '3') ? 'selected' : ''; ?>>Đã hoàn thành</option>
+                <option value="-1" <?php echo (isset($_GET['order_status']) && $_GET['order_status'] === '-1') ? 'selected' : ''; ?>>Đã hủy</option>
+            </select>
+
+            <div style="flex: 1; text-align: right;">
+                <div class="input__search p-relative" style="display: inline-block; width: 250px;">
+                    <i class="icon-search p-absolute"></i>
+                    <input type="search" name="order_search" class="form-control" placeholder="Tìm kiếm..." value="<?php echo isset($_GET['order_search']) ? htmlspecialchars($_GET['order_search']) : ''; ?>" title="Search by order code, customer name, or address" style="height: 38px;">
+                </div>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -84,100 +195,6 @@ $query_order_list = mysqli_query($mysqli, $sql_order_list);
     <div class="col-lg-12 grid-margin stretch-card">
         <div class="card">
             <div class="card-body">
-                <div class="main-pane-top d-flex space-between align-center" style="padding-inline: 20px; gap: 12px; flex-wrap: wrap;">
-                    <div class="input__search p-relative">
-                        <form class="search-form" action="?action=order&query=order_search" method="POST">
-                            <i class="icon-search p-absolute"></i>
-                            <input type="search" name="order_search" class="form-control" placeholder="Search Here" title="Search here">
-                        </form>
-                    </div>
-
-                    <form action="index.php" method="GET" class="d-flex align-center" style="gap: 10px; flex-wrap: wrap;">
-                        <input type="hidden" name="action" value="order">
-                        <input type="hidden" name="query" value="order_list">
-
-                        <?php if ($order_status !== '') { ?>
-                            <input type="hidden" name="order_status" value="<?php echo htmlspecialchars($order_status); ?>">
-                        <?php } ?>
-
-                        <div>
-                            <label style="font-size: 13px; margin-bottom: 4px; display: block;">Lọc 1 ngày</label>
-                            <input
-                                type="date"
-                                name="filter_date"
-                                class="form-control"
-                                value="<?php echo htmlspecialchars($filter_date); ?>"
-                                style="min-width: 170px;">
-                        </div>
-
-                        <div>
-                            <label style="font-size: 13px; margin-bottom: 4px; display: block;">Từ ngày</label>
-                            <input
-                                type="date"
-                                name="date_from"
-                                class="form-control"
-                                value="<?php echo htmlspecialchars($date_from); ?>"
-                                style="min-width: 170px;">
-                        </div>
-
-                        <div>
-                            <label style="font-size: 13px; margin-bottom: 4px; display: block;">Đến ngày</label>
-                            <input
-                                type="date"
-                                name="date_to"
-                                class="form-control"
-                                value="<?php echo htmlspecialchars($date_to); ?>"
-                                style="min-width: 170px;">
-                        </div>
-
-                        <div>
-                            <label style="font-size: 13px; margin-bottom: 4px; display: block;">Phường / địa chỉ</label>
-                            <input
-                                type="text"
-                                name="filter_addr"
-                                class="form-control"
-                                placeholder="Lọc theo phường / địa chỉ giao hàng"
-                                value="<?php echo htmlspecialchars($filter_addr); ?>"
-                                style="min-width: 240px;">
-                        </div>
-
-                        <div style="display:flex; gap:8px; align-items:flex-end; padding-top: 20px;">
-                            <button type="submit" class="btn btn-primary">Lọc</button>
-
-                            <a href="index.php?action=order&query=order_list<?php echo $url_status; ?>" class="btn btn-light">
-                                Xóa lọc
-                            </a>
-                        </div>
-                    </form>
-
-                    <div class="dropdown dropdown__item">
-                        <button class="btn btn-outline-dark dropdown-toggle" type="button" id="dropdownMenuSizeButton2" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <?php
-                            if ($order_status !== '' && (int)$order_status === 0) {
-                                echo "Đơn đang xử lý";
-                            } elseif ($order_status !== '' && (int)$order_status === 1) {
-                                echo "Đang chuẩn bị hàng";
-                            } elseif ($order_status !== '' && (int)$order_status === 2) {
-                                echo "Đang giao hàng";
-                            } elseif ($order_status !== '' && (int)$order_status === 3) {
-                                echo "Đã hoàn thành";
-                            } elseif ($order_status !== '' && (int)$order_status === -1) {
-                                echo "Đơn đã hủy";
-                            } else {
-                                echo "Tất cả trạng thái";
-                            }
-                            ?>
-                        </button>
-                        <div class="dropdown-menu" aria-labelledby="dropdownMenuSizeButton2">
-                            <a class="dropdown-item" href="index.php?action=order&query=order_list<?php echo $url_date . $url_from . $url_to . $url_addr; ?>">Tất cả trạng thái</a>
-                            <a class="dropdown-item" href="index.php?action=order&query=order_list&order_status=0<?php echo $url_date . $url_from . $url_to . $url_addr; ?>">Đang xử lý</a>
-                            <a class="dropdown-item" href="index.php?action=order&query=order_list&order_status=1<?php echo $url_date . $url_from . $url_to . $url_addr; ?>">Đang chuẩn bị hàng</a>
-                            <a class="dropdown-item" href="index.php?action=order&query=order_list&order_status=2<?php echo $url_date . $url_from . $url_to . $url_addr; ?>">Đang giao hàng</a>
-                            <a class="dropdown-item" href="index.php?action=order&query=order_list&order_status=3<?php echo $url_date . $url_from . $url_to . $url_addr; ?>">Đã hoàn thành</a>
-                            <a class="dropdown-item" href="index.php?action=order&query=order_list&order_status=-1<?php echo $url_date . $url_from . $url_to . $url_addr; ?>">Đã hủy</a>
-                        </div>
-                    </div>
-                </div>
 
                 <div class="table-responsive">
                     <table class="table table-hover table-action">
@@ -189,9 +206,9 @@ $query_order_list = mysqli_query($mysqli, $sql_order_list);
                                 </th>
                                 <th style="width: 50px; text-align: center;">STT</th>
                                 <th>Mã đơn hàng</th>
-                                <th>Thời gian</th>
-                                <th>Tên người đặt</th>
-                                <th>Địa chỉ giao hàng</th>
+                                <th style="cursor: pointer;"><a href="?action=order&query=order_list&sort=order_date&order=<?php echo ($sort_column === 'order_date' && $sort_order === 'ASC') ? 'DESC' : 'ASC'; ?><?php echo $url_date . $url_from . $url_to . $url_addr . $url_status; ?>" style="color: inherit; text-decoration: none;">Thời gian <?php if ($sort_column === 'order_date') echo ($sort_order === 'ASC') ? '↑' : '↓'; ?></a></th>
+                                <th style="cursor: pointer;"><a href="?action=order&query=order_list&sort=account_name&order=<?php echo ($sort_column === 'account_name' && $sort_order === 'ASC') ? 'DESC' : 'ASC'; ?><?php echo $url_date . $url_from . $url_to . $url_addr . $url_status; ?>" style="color: inherit; text-decoration: none;">Tên người đặt <?php if ($sort_column === 'account_name') echo ($sort_order === 'ASC') ? '↑' : '↓'; ?></a></th>
+                                <th style="cursor: pointer;"><a href="?action=order&query=order_list&sort=delivery_address&order=<?php echo ($sort_column === 'delivery_address' && $sort_order === 'ASC') ? 'DESC' : 'ASC'; ?><?php echo $url_date . $url_from . $url_to . $url_addr . $url_status; ?>" style="color: inherit; text-decoration: none;">Địa chỉ giao hàng <?php if ($sort_column === 'delivery_address') echo ($sort_order === 'ASC') ? '↑' : '↓'; ?></a></th>
                                 <th>Loại đơn hàng</th>
                                 <th class="text-center">Tình trạng đơn hàng</th>
                                 <th>Xóa</th>
@@ -199,10 +216,9 @@ $query_order_list = mysqli_query($mysqli, $sql_order_list);
                         </thead>
                         <tbody>
                             <?php
-                            $i = 0;
+                            $stt = $begin + 1;
                             if ($query_order_list && mysqli_num_rows($query_order_list) > 0) {
                                 while ($row = mysqli_fetch_array($query_order_list)) {
-                                    $i++;
                             ?>
                                     <tr>
                                         <td>
@@ -215,7 +231,8 @@ $query_order_list = mysqli_query($mysqli, $sql_order_list);
                                         <td>
                                             <input type="checkbox" class="checkbox" onclick="testChecked(); getCheckedCheckboxes();" id="<?php echo $row['order_code']; ?>">
                                         </td>
-                                        <td style="text-align: center;"><?php echo $i; ?></td>
+                                        <td style="text-align: center;"><?php echo $stt;
+                                                                        $stt++; ?></td>
                                         <td><?php echo $row['order_code']; ?></td>
                                         <td><?php echo $row['order_date']; ?></td>
                                         <td><?php echo htmlspecialchars($row['account_name']); ?></td>
@@ -272,15 +289,45 @@ $query_order_list = mysqli_query($mysqli, $sql_order_list);
                                 </li>
                             <?php } ?>
 
-                            <?php for ($i = 1; $i <= $totalpage; $i++) { ?>
+                            <?php
+                            // Smart pagination with ellipsis - Only show relevant pages
+                            $show_pages = array();
+
+                            // Always show first 2 pages
+                            for ($i = 1; $i <= min(2, $totalpage); $i++) {
+                                $show_pages[$i] = true;
+                            }
+
+                            // Always show last 2 pages
+                            for ($i = max(1, $totalpage - 1); $i <= $totalpage; $i++) {
+                                $show_pages[$i] = true;
+                            }
+
+                            // Show current page and adjacent
+                            for ($i = max(1, $page - 1); $i <= min($totalpage, $page + 1); $i++) {
+                                $show_pages[$i] = true;
+                            }
+
+                            ksort($show_pages);
+                            $prev_page = 0;
+
+                            foreach ($show_pages as $page_num => $val) {
+                                if ($page_num - $prev_page > 1) {
+                            ?>
+                                    <li class="pagination__item">
+                                        <span style="display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; color: #121212;">...</span>
+                                    </li>
+                                <?php
+                                }
+                                ?>
                                 <li class="pagination__item">
-                                    <a class="pagination__anchor <?php if ($page == $i) {
-                                                                        echo "active";
-                                                                    } ?>" href="<?php echo $baseLink . '&pagenumber=' . $i; ?>">
-                                        <?php echo $i; ?>
+                                    <a class="pagination__anchor <?php if ($page == $page_num) echo "active"; ?>" href="<?php echo $baseLink . '&pagenumber=' . $page_num; ?>">
+                                        <?php echo $page_num; ?>
                                     </a>
                                 </li>
-                            <?php } ?>
+                            <?php
+                                $prev_page = $page_num;
+                            } ?>
 
                             <?php if ($page != $totalpage) { ?>
                                 <li class="pagination__item">
@@ -304,6 +351,22 @@ $query_order_list = mysqli_query($mysqli, $sql_order_list);
         </div>
     </div>
 </div>
+
+<!-- Auto-submit search -->
+<script>
+    var orderSearchInput = document.querySelector('input[name="order_search"]');
+    var searchForm = orderSearchInput ? orderSearchInput.closest('form') : null;
+    var searchTimeout;
+
+    if (orderSearchInput && searchForm) {
+        orderSearchInput.addEventListener('keyup', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() {
+                searchForm.submit();
+            }, 500);
+        });
+    }
+</script>
 
 <div class="dialog__control">
     <div class="control__box">

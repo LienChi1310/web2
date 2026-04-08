@@ -59,6 +59,18 @@ $query_order = mysqli_query($mysqli, $sql_order);
                                     <span>Thời gian: <?php echo $order_date ?></span>
                                 </div>
 
+                                <!-- COMPLETION STATUS INDICATOR -->
+                                <?php
+                                $query_completion = mysqli_query($mysqli, "SELECT order_status FROM orders WHERE order_code = '$order_code' LIMIT 1");
+                                if ($comp_row = mysqli_fetch_array($query_completion)) {
+                                    $comp_status = get_completion_status($comp_row['order_status']);
+                                ?>
+                                    <div class="<?php echo $comp_status['bg_class']; ?>" style="margin: 15px 0; padding: 12px 15px; border-radius: 6px; display: flex; align-items: center; gap: 10px;">
+                                        <i class="<?php echo $comp_status['icon_class']; ?>" style="font-size: 20px;"></i>
+                                        <strong><?php echo $comp_status['text']; ?></strong>
+                                    </div>
+                                <?php } ?>
+
                                 <div class="checkout__infomation">
                                     <?php
                                     $total = 0;
@@ -68,46 +80,46 @@ $query_order = mysqli_query($mysqli, $sql_order);
                                         <div class="info__item d-flex">
                                             <label class="info__title">Tên khách hàng:</label>
                                             <input type="text"
-                                                   class="info__input flex-1"
-                                                   name="delivery_name"
-                                                   value="<?php echo $account['delivery_name'] ?>"
-                                                   readonly>
+                                                class="info__input flex-1"
+                                                name="delivery_name"
+                                                value="<?php echo $account['delivery_name'] ?>"
+                                                readonly>
                                         </div>
 
                                         <div class="info__item d-flex">
                                             <label class="info__title">Địa chỉ:</label>
                                             <input type="text"
-                                                   class="info__input flex-1"
-                                                   name="delivery_address"
-                                                   value="<?php echo $account['delivery_address'] ?>"
-                                                   readonly>
+                                                class="info__input flex-1"
+                                                name="delivery_address"
+                                                value="<?php echo $account['delivery_address'] ?>"
+                                                readonly>
                                         </div>
 
                                         <div class="info__item d-flex">
                                             <label class="info__title">Số điện thoại:</label>
                                             <input type="text"
-                                                   class="info__input flex-1"
-                                                   name="delivery_phone"
-                                                   value="<?php echo $account['delivery_phone'] ?>"
-                                                   readonly>
+                                                class="info__input flex-1"
+                                                name="delivery_phone"
+                                                value="<?php echo $account['delivery_phone'] ?>"
+                                                readonly>
                                         </div>
 
                                         <div class="info__item d-flex">
                                             <label class="info__title">Ghi chú:</label>
                                             <input type="text"
-                                                   class="info__input flex-1"
-                                                   name="delivery_note"
-                                                   value="<?php echo $account['delivery_note'] ?>"
-                                                   readonly>
+                                                class="info__input flex-1"
+                                                name="delivery_note"
+                                                value="<?php echo $account['delivery_note'] ?>"
+                                                readonly>
                                         </div>
 
                                         <div class="info__item d-flex">
                                             <label class="info__title" for="order_type">Phương thức:</label>
                                             <input type="text"
-                                                   class="info__input flex-1"
-                                                   name="order_type"
-                                                   value="<?php echo format_order_type($account['order_type']) ?>"
-                                                   readonly>
+                                                class="info__input flex-1"
+                                                name="order_type"
+                                                value="<?php echo format_order_type($account['order_type']) ?>"
+                                                readonly>
                                         </div>
                                     <?php
                                     }
@@ -129,8 +141,8 @@ $query_order = mysqli_query($mysqli, $sql_order);
                                                         </span>
                                                     </div>
                                                     <img class="w-100 d-block object-fit-cover ratio-1"
-                                                         src="modules/product/uploads/<?php echo $cart_item['product_image'] ?>"
-                                                         alt="">
+                                                        src="modules/product/uploads/<?php echo $cart_item['product_image'] ?>"
+                                                        alt="">
                                                 </div>
 
                                                 <div class="checkout__name flex-1">
@@ -143,7 +155,7 @@ $query_order = mysqli_query($mysqli, $sql_order);
                                                     <?php
                                                     echo number_format(
                                                         $cart_item['product_price']
-                                                        - ($cart_item['product_price'] / 100 * $cart_item['product_sale'])
+                                                            - ($cart_item['product_price'] / 100 * $cart_item['product_sale'])
                                                     ) . ' ₫';
                                                     ?>
                                                 </div>
@@ -174,6 +186,85 @@ $query_order = mysqli_query($mysqli, $sql_order);
                             </div>
                         </div>
 
+                        <!-- DELIVERY TIMELINE SECTION -->
+                        <?php
+                        $query_status = mysqli_query(
+                            $mysqli,
+                            "SELECT * FROM orders WHERE order_code = '$order_code' LIMIT 1"
+                        );
+                        if ($status_row = mysqli_fetch_array($query_status)) {
+                            $current_status = $status_row['order_status'];
+                            $order_date = $status_row['order_date'];
+                            $estimated_delivery = get_estimated_delivery_date($order_date);
+                        ?>
+                            <div class="order__timeline" style="margin-top: 30px; padding: 20px; background: #f9f9f9; border-radius: 8px;">
+                                <h5 style="margin-bottom: 20px; font-weight: 600;">Quá trình xử lý đơn hàng</h5>
+
+                                <div style="display: flex; gap: 15px; margin-bottom: 25px; flex-wrap: wrap; justify-content: space-between; align-items: flex-start;">
+                                    <!-- Timeline Step 1 -->
+                                    <div style="flex: 1; min-width: 100px; text-align: center;">
+                                        <div style="width: 50px; height: 50px; margin: 0 auto 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; background: <?php echo ($current_status >= 0 && $current_status != -1) ? '#2bcc71' : '#ddd'; ?>;">
+                                            <i class="<?php echo ($current_status >= 0 && $current_status != -1) ? 'mdi mdi-check-circle' : 'mdi mdi-radio-button-unchecked'; ?>"></i>
+                                        </div>
+                                        <p style="font-size: 11px; margin: 0; color: #666;">Chưa xác nhận</p>
+                                    </div>
+
+                                    <!-- Timeline Line 1 -->
+                                    <div style="flex: auto; display: flex; align-items: flex-start; padding-top: 14px; min-width: 20px;">
+                                        <div style="height: 2px; background: <?php echo ($current_status >= 1 && $current_status != -1) ? '#2bcc71' : '#ddd'; ?>; width: 100%;"></div>
+                                    </div>
+
+                                    <!-- Timeline Step 2 -->
+                                    <div style="flex: 1; min-width: 100px; text-align: center;">
+                                        <div style="width: 50px; height: 50px; margin: 0 auto 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; background: <?php echo ($current_status >= 1 && $current_status != -1) ? '#2bcc71' : '#ddd'; ?>;">
+                                            <i class="<?php echo ($current_status >= 1 && $current_status != -1) ? 'mdi mdi-check-circle' : 'mdi mdi-radio-button-unchecked'; ?>"></i>
+                                        </div>
+                                        <p style="font-size: 11px; margin: 0; color: #666;">Chờ chuẩn bị</p>
+                                    </div>
+
+                                    <!-- Timeline Line 2 -->
+                                    <div style="flex: auto; display: flex; align-items: flex-start; padding-top: 14px; min-width: 20px;">
+                                        <div style="height: 2px; background: <?php echo ($current_status >= 2 && $current_status != -1) ? '#2bcc71' : '#ddd'; ?>; width: 100%;"></div>
+                                    </div>
+
+                                    <!-- Timeline Step 3 -->
+                                    <div style="flex: 1; min-width: 100px; text-align: center;">
+                                        <div style="width: 50px; height: 50px; margin: 0 auto 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; background: <?php echo ($current_status >= 2 && $current_status != -1) ? '#2bcc71' : '#ddd'; ?>;">
+                                            <i class="<?php echo ($current_status >= 2 && $current_status != -1) ? 'mdi mdi-check-circle' : 'mdi mdi-radio-button-unchecked'; ?>"></i>
+                                        </div>
+                                        <p style="font-size: 11px; margin: 0; color: #666;">Đang giao hàng</p>
+                                    </div>
+
+                                    <!-- Timeline Line 3 -->
+                                    <div style="flex: auto; display: flex; align-items: flex-start; padding-top: 14px; min-width: 20px;">
+                                        <div style="height: 2px; background: <?php echo ($current_status >= 3 && $current_status != -1) ? '#2bcc71' : '#ddd'; ?>; width: 100%;"></div>
+                                    </div>
+
+                                    <!-- Timeline Step 4 -->
+                                    <div style="flex: 1; min-width: 100px; text-align: center;">
+                                        <div style="width: 50px; height: 50px; margin: 0 auto 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; background: <?php echo ($current_status >= 3 && $current_status != -1) ? '#2bcc71' : '#ddd'; ?>;">
+                                            <i class="<?php echo ($current_status >= 3 && $current_status != -1) ? 'mdi mdi-check-circle' : 'mdi mdi-radio-button-unchecked'; ?>"></i>
+                                        </div>
+                                        <p style="font-size: 11px; margin: 0; color: #666;">Đã giao hàng</p>
+                                    </div>
+                                </div>
+
+                                <!-- Delivery Dates -->
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
+                                    <div class="color-bg-blue" style="padding: 15px; border-radius: 6px;">
+                                        <p style="margin: 0; font-size: 12px; font-weight: 500;">Dự kiến giao</p>
+                                        <p style="margin: 8px 0 0 0; font-size: 16px; font-weight: 600;"><?php echo date('d/m/Y', strtotime($estimated_delivery)); ?></p>
+                                    </div>
+                                    <div class="<?php echo ($current_status == 3) ? 'color-bg-green' : 'color-bg-orange'; ?>" style="padding: 15px; border-radius: 6px;">
+                                        <p style="margin: 0; font-size: 12px; font-weight: 500;">Thực tế giao</p>
+                                        <p style="margin: 8px 0 0 0; font-size: 16px; font-weight: 600;">
+                                            <?php echo ($current_status == 3) ? 'Đã giao hàng' : 'Đang xử lý'; ?>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php } ?>
+
                         <div class="d-flex algin-center space-between">
                             <?php
                             $query_status = mysqli_query(
@@ -182,18 +273,39 @@ $query_order = mysqli_query($mysqli, $sql_order);
                             );
                             while ($status = mysqli_fetch_array($query_status)) {
                             ?>
-                                <div class="order__detail--action">
+                                <div class="order__detail--action" style="display: flex; gap: 10px; flex-wrap: wrap;">
                                     <?php
                                     // Nếu đơn còn ở trạng thái <= 2 thì cho phép Duyệt đơn
                                     if ($status['order_status'] <= 2) {
                                     ?>
                                         <a href="modules/order/xuly.php?confirm=1&order_code=<?php echo $order_code ?>"
-                                           class="btn btn-outline-dark btn-fw">
+                                            class="btn btn-outline-dark btn-fw">
                                             Duyệt đơn
                                         </a>
                                     <?php
                                     }
-                                    // TẠM THỜI KHÔNG HIỂN THỊ NÚT "Trả hàng" NỮA
+
+                                    // Nếu đơn chưa bị hủy (status != -1) và chưa hoàn thành (status < 3) thì cho phép Hủy đơn
+                                    if ($status['order_status'] != -1 && $status['order_status'] < 3) {
+                                    ?>
+                                        <a href="javascript:void(0);"
+                                            onclick="confirmCancelOrder(<?php echo $order_code ?>)"
+                                            class="btn btn-outline-danger btn-fw">
+                                            Hủy đơn
+                                        </a>
+                                    <?php
+                                    }
+
+                                    // Nếu đơn đã bị hủy thì cho phép xóa
+                                    if ($status['order_status'] == -1) {
+                                    ?>
+                                        <a href="javascript:void(0);"
+                                            onclick="confirmDeleteOrder(<?php echo $order_code ?>)"
+                                            class="btn btn-outline-danger btn-fw">
+                                            Xóa đơn
+                                        </a>
+                                    <?php
+                                    }
                                     ?>
                                 </div>
 
@@ -224,6 +336,7 @@ $query_order = mysqli_query($mysqli, $sql_order);
             duration: 0,
         });
     }
+
     function showInfoToast() {
         toast({
             title: "Info",
@@ -232,6 +345,7 @@ $query_order = mysqli_query($mysqli, $sql_order);
             duration: 0,
         });
     }
+
     function showErrorToast() {
         toast({
             title: "Error",
@@ -239,6 +353,18 @@ $query_order = mysqli_query($mysqli, $sql_order);
             type: "error",
             duration: 0,
         });
+    }
+
+    function confirmCancelOrder(orderCode) {
+        if (confirm('Bạn có chắc muốn hủy đơn hàng này không? Hành động này sẽ hoàn lại hàng tồn kho.')) {
+            window.location.href = 'modules/order/xuly.php?cancel=1&data=' + JSON.stringify([orderCode]);
+        }
+    }
+
+    function confirmDeleteOrder(orderCode) {
+        if (confirm('Bạn có chắc muốn xóa đơn hàng này không? Hành động này không thể hoàn tác.')) {
+            window.location.href = 'modules/order/xuly.php?delete_order=1&order_code=' + orderCode;
+        }
     }
 </script>
 

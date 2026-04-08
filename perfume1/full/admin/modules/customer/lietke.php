@@ -1,18 +1,36 @@
 <?php
 if (isset($_GET['pagenumber'])) {
-    $page = $_GET['pagenumber'];
+    $page = (int)$_GET['pagenumber'];
 } else {
-    $page = '1';
+    $page = 1;
 }
 
-
-if ($page == '' || $page == 1) {
+if ($page <= 1) {
     $begin = 0;
+    $page = 1;
 } else {
     $begin = ($page * 10) - 10;
 }
 
-$sql_customer_list = "SELECT * FROM customer ORDER BY customer_id DESC LIMIT $begin,10";
+// Handle search filter
+$search_filter = '';
+$search_keyword = '';
+if (isset($_GET['customer_search']) && $_GET['customer_search'] !== '') {
+    $search_keyword = $_GET['customer_search'];
+    $search_filter = " AND (customer_name LIKE '%" . mysqli_real_escape_string($mysqli, $search_keyword) . "%' OR customer_email LIKE '%" . mysqli_real_escape_string($mysqli, $search_keyword) . "%' OR customer_phone LIKE '%" . mysqli_real_escape_string($mysqli, $search_keyword) . "%')";
+}
+
+// Handle sorting
+$sort_column = 'customer_id';
+$sort_order = 'DESC';
+$allowed_sorts = ['customer_name', 'customer_email', 'customer_phone', 'customer_id'];
+
+if (isset($_GET['sort']) && in_array($_GET['sort'], $allowed_sorts)) {
+    $sort_column = $_GET['sort'];
+    $sort_order = (isset($_GET['order']) && $_GET['order'] === 'ASC') ? 'ASC' : 'DESC';
+}
+
+$sql_customer_list = "SELECT * FROM customer WHERE 1=1 $search_filter ORDER BY $sort_column $sort_order LIMIT $begin,10";
 $query_customer_list = mysqli_query($mysqli, $sql_customer_list);
 ?>
 <div class="row">
@@ -25,19 +43,27 @@ $query_customer_list = mysqli_query($mysqli, $sql_customer_list);
         </div>
     </div>
 </div>
+
+<div class="row mb-3">
+    <div class="col">
+        <form method="GET" action="index.php" class="d-flex align-items-center" style="gap:10px; flex-wrap:wrap;">
+            <input type="hidden" name="action" value="customer">
+            <input type="hidden" name="query" value="customer_list">
+
+            <div style="flex: 1; text-align: right;">
+                <div class="input__search p-relative" style="display: inline-block; width: 250px;">
+                    <i class="icon-search p-absolute"></i>
+                    <input type="text" id="customerSearchInput" name="customer_search" class="form-control" placeholder="Tìm kiếm khách hàng..." value="<?php echo isset($_GET['customer_search']) ? htmlspecialchars($_GET['customer_search']) : ''; ?>">
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="row">
     <div class="col-lg-12 grid-margin stretch-card">
         <div class="card">
             <div class="card-body">
-                <div class="main-pane-top d-flex justify-center align-center">
-                    <div class="input__search p-relative">
-                        <form class="search-form" action="#">
-                            <i class="icon-search p-absolute"></i>
-                            <input type="search" class="form-control" placeholder="Search Here" title="Search here">
-                        </form>
-                    </div>
-                </div>
-
 
                 <div class="table-responsive">
                     <table class="table table-hover table-action">
@@ -47,24 +73,24 @@ $query_customer_list = mysqli_query($mysqli, $sql_customer_list);
                                     <input type="checkbox" id="checkAll">
                                 </th>
                                 <th style="width: 50px; text-align: center;">STT</th>
-                                <th>Tên khách hàng</th>
+                                <th style="cursor: pointer;"><a href="?action=customer&query=customer_list&sort=customer_name&order=<?php echo ($sort_column === 'customer_name' && $sort_order === 'ASC') ? 'DESC' : 'ASC'; ?>&customer_search=<?php echo isset($_GET['customer_search']) ? urlencode($_GET['customer_search']) : ''; ?>" style="color: inherit; text-decoration: none;">Tên khách hàng <?php if ($sort_column === 'customer_name') echo ($sort_order === 'ASC') ? '↑' : '↓'; ?></a></th>
                                 <th>Giới tính</th>
-                                <th>Email</th>
-                                <th>Số điện thoại</th>
+                                <th style="cursor: pointer;"><a href="?action=customer&query=customer_list&sort=customer_email&order=<?php echo ($sort_column === 'customer_email' && $sort_order === 'ASC') ? 'DESC' : 'ASC'; ?>&customer_search=<?php echo isset($_GET['customer_search']) ? urlencode($_GET['customer_search']) : ''; ?>" style="color: inherit; text-decoration: none;">Email <?php if ($sort_column === 'customer_email') echo ($sort_order === 'ASC') ? '↑' : '↓'; ?></a></th>
+                                <th style="cursor: pointer;"><a href="?action=customer&query=customer_list&sort=customer_phone&order=<?php echo ($sort_column === 'customer_phone' && $sort_order === 'ASC') ? 'DESC' : 'ASC'; ?>&customer_search=<?php echo isset($_GET['customer_search']) ? urlencode($_GET['customer_search']) : ''; ?>" style="color: inherit; text-decoration: none;">Số điện thoại <?php if ($sort_column === 'customer_phone') echo ($sort_order === 'ASC') ? '↑' : '↓'; ?></a></th>
                                 <th>Địa chỉ</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php
-                            $i = 0;
+                            $stt = $begin + 1;
                             while ($row = mysqli_fetch_array($query_customer_list)) {
-                                $i++;
                             ?>
                                 <tr>
                                     <td>
                                         <input type="checkbox" class="checkbox" onclick="testChecked(); getCheckedCheckboxes();" id="<?php echo $row['customer_id'] ?>">
                                     </td>
-                                    <td style="text-align: center;"><?php echo $i; ?></td>
+                                    <td style="text-align: center;"><?php echo $stt;
+                                                                    $stt++; ?></td>
                                     <td><?php echo $row['customer_name'] ?></td>
                                     <td><?php echo format_gender($row['customer_gender']) ?></td>
                                     <td><?php echo $row['customer_email'] ?></td>
@@ -81,12 +107,15 @@ $query_customer_list = mysqli_query($mysqli, $sql_customer_list);
                 <div class="pagination d-flex justify-center">
                     <?php
 
-                    $sql_customer = "SELECT * FROM customer ORDER BY customer_id DESC";
+                    $sql_customer = "SELECT * FROM customer WHERE 1=1 $search_filter ORDER BY customer_id DESC";
                     $query_pages = mysqli_query($mysqli, $sql_customer);
 
                     $row_count = mysqli_num_rows($query_pages);
                     $totalpage = ceil($row_count / 10);
-                    $currentLink = $_SERVER['REQUEST_URI'];
+                    $currentLink = "index.php?action=customer&query=customer_list";
+                    if (isset($_GET['customer_search']) && $_GET['customer_search'] !== '') {
+                        $currentLink .= "&customer_search=" . urlencode($_GET['customer_search']);
+                    }
                     if ($totalpage > 1) {
                     ?>
                         <ul class="pagination__items d-flex align-center justify-center">
@@ -94,7 +123,7 @@ $query_customer_list = mysqli_query($mysqli, $sql_customer_list);
                             if ($page != 1) {
                             ?>
                                 <li class="pagination__item">
-                                    <a class="d-flex align-center" href="<?php echo $currentLink ?>&pagenumber=<?php echo $i + 1 ?>">
+                                    <a class="d-flex align-center" href="<?php echo $currentLink . '&pagenumber=' . ($page - 1); ?>">
                                         <img src="images/arrow-left.svg" alt="">
                                     </a>
                                 </li>
@@ -102,21 +131,47 @@ $query_customer_list = mysqli_query($mysqli, $sql_customer_list);
                             }
                             ?>
                             <?php
-                            for ($i = 1; $i <= $totalpage; $i++) {
+                            // Smart pagination with ellipsis - Only show relevant pages
+                            $show_pages = array();
+
+                            // Always show first 2 pages
+                            for ($i = 1; $i <= min(2, $totalpage); $i++) {
+                                $show_pages[$i] = true;
+                            }
+
+                            // Always show last 2 pages
+                            for ($i = max(1, $totalpage - 1); $i <= $totalpage; $i++) {
+                                $show_pages[$i] = true;
+                            }
+
+                            // Show current page and adjacent
+                            for ($i = max(1, $page - 1); $i <= min($totalpage, $page + 1); $i++) {
+                                $show_pages[$i] = true;
+                            }
+
+                            ksort($show_pages);
+                            $prev_page = 0;
+
+                            foreach ($show_pages as $page_num => $val) {
+                                if ($page_num - $prev_page > 1) {
                             ?>
+                                    <li class="pagination__item">
+                                        <span style="display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; color: #121212;">...</span>
+                                    </li>
+                                <?php
+                                }
+                                ?>
                                 <li class="pagination__item">
-                                    <a class="pagination__anchor <?php if ($page == $i) {
-                                                                        echo "active";
-                                                                    } ?>" href="<?php echo $currentLink ?>&pagenumber=<?php echo $i ?>"><?php echo $i ?></a>
+                                    <a class="pagination__anchor <?php if ($page == $page_num) echo "active"; ?>" href="<?php echo $currentLink . '&pagenumber=' . $page_num; ?>"><?php echo $page_num; ?></a>
                                 </li>
                             <?php
-                            }
-                            ?>
+                                $prev_page = $page_num;
+                            } ?>
                             <?php
-                            if ($page != $totalpage) {
+                            if ($page != $totalpage && $totalpage > 0) {
                             ?>
                                 <li class="pagination__item">
-                                    <a class="d-flex align-center" href="<?php echo $currentLink ?>&pagenumber=<?php echo $i ?>">
+                                    <a class="d-flex align-center" href="<?php echo $currentLink . '&pagenumber=' . ($page + 1); ?>">
                                         <img src="images/icon-nextlink.svg" alt="">
                                     </a>
                                 </li>
@@ -127,8 +182,8 @@ $query_customer_list = mysqli_query($mysqli, $sql_customer_list);
                     <?php
                     } elseif ($totalpage == 0) {
                     ?>
-                        <div class="w-100 text-center">
-                            <p class="color-t-red">Không có khách hàng nào !</p>
+                        <div class="alert alert-info" style="margin: 20px auto; text-align: center; width: 100%; font-style: italic; color: #000; font-weight: normal;">
+                            Không tìm thấy khách hàng nào phù hợp với bộ lọc của bạn
                         </div>
                     <?php
                     }
@@ -143,6 +198,23 @@ $query_customer_list = mysqli_query($mysqli, $sql_customer_list);
         <a href="#" class="button__control btn__wanning" id="btnDelete" onclick="return confirm('Bạn có thực sự muốn xóa thông tin khách hàng này không?')">Xóa</a>
     </div>
 </div>
+
+<script>
+    // Auto-search functionality
+    var customerSearchInput = document.getElementById('customerSearchInput');
+    var customerSearchForm = customerSearchInput ? customerSearchInput.closest('form') : null;
+    var customerSearchTimeout;
+
+    if (customerSearchInput && customerSearchForm) {
+        customerSearchInput.addEventListener('keyup', function() {
+            clearTimeout(customerSearchTimeout);
+            customerSearchTimeout = setTimeout(function() {
+                customerSearchForm.submit();
+            }, 500);
+        });
+    }
+</script>
+
 <script>
     var btnDelete = document.getElementById("btnDelete");
     var checkAll = document.getElementById("checkAll");

@@ -142,6 +142,7 @@ function inventory_status_class($value)
                     <table class="table table-bordered table-hover align-middle">
                         <thead>
                             <tr>
+                                <th style="width: 50px; text-align: center;">STT</th>
                                 <th>Mã phiếu</th>
                                 <th>Ngày nhập</th>
                                 <th>Số dòng SP</th>
@@ -152,8 +153,13 @@ function inventory_status_class($value)
                         </thead>
                         <tbody>
                             <?php if ($query && mysqli_num_rows($query) > 0) { ?>
-                                <?php while ($row = mysqli_fetch_array($query)) { ?>
+                                <?php
+                                $stt = 0;
+                                while ($row = mysqli_fetch_array($query)) {
+                                    $stt++;
+                                ?>
                                     <tr>
+                                        <td style="text-align: center;"><?php echo $stt; ?></td>
                                         <td>#<?php echo $row['inventory_id']; ?></td>
                                         <td>
                                             <?php
@@ -180,14 +186,14 @@ function inventory_status_class($value)
                                                 </a>
 
                                                 <a href="modules/inventory/xuly.php?action=complete&inventory_id=<?php echo $row['inventory_id']; ?>"
-                                                   class="btn btn-success btn-sm"
-                                                   onclick="return confirm('Bạn có chắc muốn hoàn thành phiếu nhập này không? Sau khi hoàn thành sẽ cập nhật tồn kho và giá vốn.');">
+                                                    class="btn btn-success btn-sm"
+                                                    onclick="return confirm('Bạn có chắc muốn hoàn thành phiếu nhập này không? Sau khi hoàn thành sẽ cập nhật tồn kho và giá vốn.');">
                                                     Hoàn thành
                                                 </a>
 
                                                 <a href="modules/inventory/xuly.php?action=cancel&inventory_id=<?php echo $row['inventory_id']; ?>"
-                                                   class="btn btn-danger btn-sm"
-                                                   onclick="return confirm('Bạn có chắc muốn hủy phiếu nhập này không?');">
+                                                    class="btn btn-danger btn-sm"
+                                                    onclick="return confirm('Bạn có chắc muốn hủy phiếu nhập này không?');">
                                                     Hủy
                                                 </a>
                                             <?php } ?>

@@ -1,5 +1,23 @@
 <?php
-$sql_brand_list = "SELECT * FROM brand ORDER BY brand_id ASC";
+// Handle search
+$search_filter = '';
+$search_keyword = '';
+if (isset($_GET['brand_search']) && $_GET['brand_search'] !== '') {
+    $search_keyword = $_GET['brand_search'];
+    $search_filter = " AND brand_name LIKE '%" . mysqli_real_escape_string($mysqli, $search_keyword) . "%'";
+}
+
+// Handle sorting
+$sort_column = 'brand_id';
+$sort_order = 'ASC';
+$allowed_sorts = ['brand_name', 'brand_id'];
+
+if (isset($_GET['sort']) && in_array($_GET['sort'], $allowed_sorts)) {
+    $sort_column = $_GET['sort'];
+    $sort_order = (isset($_GET['order']) && $_GET['order'] === 'DESC') ? 'DESC' : 'ASC';
+}
+
+$sql_brand_list = "SELECT * FROM brand WHERE 1=1 $search_filter ORDER BY $sort_column $sort_order";
 $query_brand_list = mysqli_query($mysqli, $sql_brand_list);
 
 // Xử lý message từ URL
@@ -79,18 +97,26 @@ if (isset($_GET['message'])) {
     </div>
 </div>
 
-<div class="row" style="margin-top: 10px;">
+<div class="row mb-3">
+    <div class="col">
+        <form method="GET" action="index.php" class="d-flex align-items-center" style="gap:10px; flex-wrap:wrap;">
+            <input type="hidden" name="action" value="brand">
+            <input type="hidden" name="query" value="brand_list">
+
+            <div style="flex: 1; text-align: right;">
+                <div class="input__search p-relative" style="display: inline-block; width: 250px;">
+                    <i class="icon-search p-absolute"></i>
+                    <input type="text" id="brandSearchInput" name="brand_search" class="form-control" placeholder="Tìm kiếm thương hiệu..." value="<?php echo isset($_GET['brand_search']) ? htmlspecialchars($_GET['brand_search']) : ''; ?>">
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row">
     <div class="col-lg-12 grid-margin stretch-card">
         <div class="card" style="border-radius: 20px; overflow: hidden;">
             <div class="card-body">
-                <div class="main-pane-top d-flex justify-center align-center" style="margin-bottom: 20px;">
-                    <div class="input__search p-relative">
-                        <form class="search-form" action="#">
-                            <i class="icon-search p-absolute"></i>
-                            <input type="search" class="form-control" placeholder="Search Here" title="Search here">
-                        </form>
-                    </div>
-                </div>
 
                 <div class="table-responsive">
                     <table class="table table-hover table-action" style="width: 100%; border-collapse: collapse;">
@@ -100,15 +126,14 @@ if (isset($_GET['message'])) {
                                     <input type="checkbox" id="checkAll">
                                 </th>
                                 <th style="width: 50px; text-align: center;">STT</th>
-                                <th>Tên thương hiệu</th>
+                                <th style="cursor: pointer;"><a href="?action=brand&query=brand_list&sort=brand_name&order=<?php echo ($sort_column === 'brand_name' && $sort_order === 'DESC') ? 'ASC' : 'DESC'; ?>&brand_search=<?php echo isset($_GET['brand_search']) ? urlencode($_GET['brand_search']) : ''; ?>" style="color: inherit; text-decoration: none;">Tên thương hiệu <?php if ($sort_column === 'brand_name') echo ($sort_order === 'ASC') ? '↑' : '↓'; ?></a></th>
                                 <th style="width: 100px; text-align: center;">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php
-                            $i = 0;
+                            $stt = 1;
                             while ($row = mysqli_fetch_array($query_brand_list)) {
-                                $i++;
                             ?>
                                 <tr>
                                     <td style="text-align: center; vertical-align: middle;">
@@ -120,7 +145,8 @@ if (isset($_GET['message'])) {
                                     </td>
 
                                     <td style="text-align: center; vertical-align: middle;">
-                                        <?php echo $i; ?>
+                                        <?php echo $stt;
+                                        $stt++; ?>
                                     </td>
 
                                     <td style="vertical-align: middle; font-weight: 500;">
@@ -133,6 +159,17 @@ if (isset($_GET['message'])) {
                                                 <img src="images/icon-edit.png" alt="edit" style="width: 18px; height: 18px;">
                                             </div>
                                         </a>
+                                    </td>
+                                </tr>
+                            <?php
+                            }
+                            if (mysqli_num_rows($query_brand_list) == 0) {
+                            ?>
+                                <tr>
+                                    <td colspan="5" class="text-center">
+                                        <div class="alert alert-info" style="margin: 20px auto; text-align: center; width: 100%; font-style: italic; color: #000; font-weight: normal;">
+                                            Không tìm thấy thương hiệu nào phù hợp với bộ lọc của bạn
+                                        </div>
                                     </td>
                                 </tr>
                             <?php
@@ -151,6 +188,22 @@ if (isset($_GET['message'])) {
         <a href="#" class="button__control" id="btnDelete">Xóa</a>
     </div>
 </div>
+
+<script>
+    // Auto-search functionality
+    var brandSearchInput = document.getElementById('brandSearchInput');
+    var brandSearchForm = brandSearchInput ? brandSearchInput.closest('form') : null;
+    var brandSearchTimeout;
+
+    if (brandSearchInput && brandSearchForm) {
+        brandSearchInput.addEventListener('keyup', function() {
+            clearTimeout(brandSearchTimeout);
+            brandSearchTimeout = setTimeout(function() {
+                brandSearchForm.submit();
+            }, 500);
+        });
+    }
+</script>
 
 <?php if ($toast_type !== '' && $toast_text !== ''): ?>
     <script>

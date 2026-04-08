@@ -99,8 +99,10 @@
 }
 
 .card-title {
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .d-flex {
@@ -263,7 +265,7 @@ thead {
 }
 
 .card .card-body {
-  padding: 20px 1px !important;
+  padding: 20px 25px !important;
 }
 
 table tfoot {
@@ -529,6 +531,50 @@ tr.low-stock td:nth-child(2) {
   background-color: #fff8e1 !important;
 }
 
+/* ===== TABLE RESPONSIVE & COMPACT STYLES ===== */
+
+/* General table responsive adjustments */
+.table-hover th,
+.table-hover td,
+.table-action th,
+.table-action td {
+  padding: 8px 6px !important;
+  font-size: 13px;
+}
+
+/* 长 columns with text wrapping */
+.table tbody td {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Product/Collection/Category name columns - limit width */
+.table td:has(> a > div.icon-edit)~td {
+  max-width: 250px;
+  white-space: normal;
+  word-break: break-word;
+}
+
+/* Image columns - responsive sizing */
+.table img.product_image,
+.table img[src*="uploads/"] {
+  max-width: 40px;
+  max-height: 40px;
+  height: auto;
+  object-fit: cover;
+}
+
+/* Prevent horizontal overflow on responsive containers */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Reduce border and spacing for compact view */
+.table-bordered {
+  border-collapse: collapse;
+}
+
 .dialog__container {
   z-index: 10000;
   border-radius: 10px;
@@ -673,13 +719,18 @@ tr.low-stock td:nth-child(2) {
 }
 
 .pagination__item .pagination__anchor {
-  display: inline-block;
-  padding: 5px 12px;
-  width: 32px;
-  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   color: #121212;
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  font-size: 14px;
+  font-weight: 500;
+  min-width: 40px;
 }
 
 .pagination__anchor {

@@ -1,22 +1,39 @@
 <?php
 if (isset($_GET['pagenumber'])) {
-    $page = $_GET['pagenumber'];
+    $page = (int)$_GET['pagenumber'];
 } else {
-    $page = '1';
+    $page = 1;
 }
 
-
-if ($page == '' || $page == 1) {
+if ($page <= 1) {
     $begin = 0;
+    $page = 1;
 } else {
     $begin = ($page * 10) - 10;
 }
 
+$payment_search = isset($_GET['payment_search']) ? trim($_GET['payment_search']) : '';
+
+// Handle sorting - always by date DESC as default
+$sort_order = 'DESC';
+
 if (isset($_GET['payment_type']) && $_GET['payment_type'] == 'momo') {
-    $sql_payment_list = "SELECT * FROM momo ORDER BY momo_id DESC LIMIT $begin,10";
+    $sort_column_order = 'momo_id DESC';
+    if ($payment_search !== '') {
+        $payment_search_safe = mysqli_real_escape_string($mysqli, $payment_search);
+        $sql_payment_list = "SELECT * FROM momo WHERE order_code LIKE '%{$payment_search_safe}%' ORDER BY $sort_column_order LIMIT $begin,10";
+    } else {
+        $sql_payment_list = "SELECT * FROM momo ORDER BY $sort_column_order LIMIT $begin,10";
+    }
     $query_payment_list = mysqli_query($mysqli, $sql_payment_list);
 } else {
-    $sql_payment_list = "SELECT * FROM vnpay ORDER BY vnp_paydate DESC LIMIT $begin,10";
+    $sort_column_order = 'vnp_paydate DESC';
+    if ($payment_search !== '') {
+        $payment_search_safe = mysqli_real_escape_string($mysqli, $payment_search);
+        $sql_payment_list = "SELECT * FROM vnpay WHERE order_code LIKE '%{$payment_search_safe}%' ORDER BY $sort_column_order LIMIT $begin,10";
+    } else {
+        $sql_payment_list = "SELECT * FROM vnpay ORDER BY $sort_column_order LIMIT $begin,10";
+    }
     $query_payment_list = mysqli_query($mysqli, $sql_payment_list);
 }
 ?>
@@ -27,28 +44,34 @@ if (isset($_GET['payment_type']) && $_GET['payment_type'] == 'momo') {
         </div>
     </div>
 </div>
+
+<div class="row mb-3">
+    <div class="col">
+        <form method="GET" action="index.php" class="d-flex align-items-center" style="gap:10px; flex-wrap:wrap;">
+            <input type="hidden" name="action" value="order">
+            <input type="hidden" name="query" value="order_payment">
+
+            <label class="mb-0">Cổng thanh toán:</label>
+            <select name="payment_type" class="form-control" style="width: 150px;" onchange="this.form.submit();">
+                <option value="">-- VNPAY --</option>
+                <option value="vnpay" <?php echo isset($_GET['payment_type']) && $_GET['payment_type'] === 'vnpay' ? 'selected' : ''; ?>>VNPAY</option>
+                <option value="momo" <?php echo isset($_GET['payment_type']) && $_GET['payment_type'] === 'momo' ? 'selected' : ''; ?>>MoMo</option>
+            </select>
+
+            <div style="flex: 1; text-align: right;">
+                <div class="input__search p-relative" style="display: inline-block; width: 250px;">
+                    <i class="icon-search p-absolute"></i>
+                    <input type="search" name="payment_search" class="form-control" placeholder="Tìm kiếm mã đơn..." value="<?php echo isset($_GET['payment_search']) ? htmlspecialchars($_GET['payment_search']) : ''; ?>" title="Search by order code" style="height: 38px;">
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="row">
     <div class="col-lg-12 grid-margin stretch-card">
         <div class="card">
             <div class="card-body">
-                <div class="main-pane-top d-flex space-between align-center" style="padding-inline: 20px;">
-                    <div class="input__search p-relative">
-                        <form class="search-form" action="?action=order&query=order_search" method="POST">
-                            <i class="icon-search p-absolute"></i>
-                            <input type="search" name="order_search" class="form-control" placeholder="Search Here" title="Search here">
-                        </form>
-                    </div>
-                    <div class="dropdown dropdown__item">
-                        <button class="btn btn-outline-dark dropdown-toggle" type="button" id="dropdownMenuSizeButton2" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            Cổng thanh toán
-                        </button>
-                        <div class="dropdown-menu" aria-labelledby="dropdownMenuSizeButton2">
-                            <a class="dropdown-item" href="index.php?action=order&query=order_payment&payment_type=vnpay">VNPAY</a>
-                            <a class="dropdown-item" href="index.php?action=order&query=order_payment&payment_type=momo">MoMo</a>
-                        </div>
-                    </div>
-                </div>
-
 
                 <div class="table-responsive">
                     <?php
@@ -61,6 +84,7 @@ if (isset($_GET['payment_type']) && $_GET['payment_type'] == 'momo') {
                                     <th>
                                         <input type="checkbox" id="checkAll">
                                     </th>
+                                    <th style="width: 50px; text-align: center;">STT</th>
                                     <th>Mã đơn hàng</th>
                                     <th>Thời gian</th>
                                     <th>Tổng tiền</th>
@@ -69,9 +93,8 @@ if (isset($_GET['payment_type']) && $_GET['payment_type'] == 'momo') {
                             </thead>
                             <tbody>
                                 <?php
-                                $i = 0;
+                                $stt = $begin + 1;
                                 while ($row = mysqli_fetch_array($query_payment_list)) {
-                                    $i++;
                                 ?>
                                     <tr>
                                         <td>
@@ -84,7 +107,8 @@ if (isset($_GET['payment_type']) && $_GET['payment_type'] == 'momo') {
                                         <td>
                                             <input type="checkbox" class="checkbox" onclick="testChecked(); getCheckedCheckboxes();" id="<?php echo $row['order_code'] ?>">
                                         </td>
-                                        <td style="text-align: center;"><?php echo $i; ?></td>
+                                        <td style="text-align: center;"><?php echo $stt;
+                                                                        $stt++; ?></td>
                                         <td><?php echo $row['order_code'] ?></td>
                                         <td><?php echo $row['payment_date'] ?></td>
                                         <td><?php echo number_format($row['momo_amount']) ?>đ</td>
@@ -115,9 +139,8 @@ if (isset($_GET['payment_type']) && $_GET['payment_type'] == 'momo') {
                             </thead>
                             <tbody>
                                 <?php
-                                $i = 0;
+                                $stt = $begin + 1;
                                 while ($row = mysqli_fetch_array($query_payment_list)) {
-                                    $i++;
                                 ?>
                                     <tr>
                                         <td>
@@ -130,7 +153,8 @@ if (isset($_GET['payment_type']) && $_GET['payment_type'] == 'momo') {
                                         <td>
                                             <input type="checkbox" class="checkbox" onclick="testChecked(); getCheckedCheckboxes();" id="<?php echo $row['order_code'] ?>">
                                         </td>
-                                        <td style="text-align: center;"><?php echo $i; ?></td>
+                                        <td style="text-align: center;"><?php echo $stt;
+                                                                        $stt++; ?></td>
                                         <td><?php echo $row['order_code'] ?></td>
                                         <td><?php echo format_datetime($row['vnp_paydate']) ?></td>
                                         <td><?php echo number_format($row['vnp_amount'] / 100) ?>đ</td>
@@ -210,6 +234,23 @@ if (isset($_GET['payment_type']) && $_GET['payment_type'] == 'momo') {
         </div>
     </div>
 </div>
+
+<!-- Auto-submit search -->
+<script>
+    var paymentSearchInput = document.querySelector('input[name="payment_search"]');
+    var searchForm = paymentSearchInput ? paymentSearchInput.closest('form') : null;
+    var searchTimeout;
+
+    if (paymentSearchInput && searchForm) {
+        paymentSearchInput.addEventListener('keyup', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() {
+                searchForm.submit();
+            }, 500);
+        });
+    }
+</script>
+
 <div class="dialog__control">
     <div class="control__box">
         <a href="modules/order/xuly.php?reverse=1" class="button__control" id="btnCancel">Hoàn tiền</a>

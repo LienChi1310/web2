@@ -28,6 +28,7 @@ if (isset($_GET['action'], $_GET['query'])) {
 
   $ban = [
     'order:order_live',           // Đơn hàng tại quầy
+    'order:order_payment',        // Lịch sử thanh toán (moved to Payment module)
     'product:product_inventory',  // Hàng tồn kho (cũ)
     'article:article_add',        // Bài viết
     'article:article_list',

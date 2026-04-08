@@ -38,6 +38,18 @@ $query_order = mysqli_query($mysqli, $sql_order);
                             <div class="col col-lg-7">
                                 <div class="checkout__title d-flex align-center space-between"><span>Mã đơn hàng: <?php echo $order_code; ?></span> <span>Thời gian: <?php echo $order_date ?></span></div>
 
+                                <!-- COMPLETION STATUS INDICATOR -->
+                                <?php
+                                $query_completion = mysqli_query($mysqli, "SELECT order_status FROM orders WHERE order_code = '$order_code' LIMIT 1");
+                                if ($comp_row = mysqli_fetch_array($query_completion)) {
+                                    $comp_status = get_completion_status($comp_row['order_status']);
+                                ?>
+                                    <div class="<?php echo $comp_status['bg_class']; ?>" style="margin: 15px 0; padding: 12px 15px; border-radius: 6px; display: flex; align-items: center; gap: 10px;">
+                                        <i class="<?php echo $comp_status['icon_class']; ?>" style="font-size: 20px;"></i>
+                                        <strong><?php echo $comp_status['text']; ?></strong>
+                                    </div>
+                                <?php } ?>
+
                                 <div class="checkout__infomation">
                                     <?php
                                     $total;
@@ -106,7 +118,89 @@ $query_order = mysqli_query($mysqli, $sql_order);
                                 </div>
                             </div>
                         </div>
-                        <a href="modules/order/indonhang.php?order_code=<?php echo $order_code ?>" target="_blank" class="btn btn-outline-dark btn-fw">In Hóa Đơn</a>
+
+                        <!-- DELIVERY TIMELINE SECTION -->
+                        <?php
+                        $query_status = mysqli_query(
+                            $mysqli,
+                            "SELECT * FROM orders WHERE order_code = '$order_code' LIMIT 1"
+                        );
+                        if ($status_row = mysqli_fetch_array($query_status)) {
+                            $current_status = $status_row['order_status'];
+                            $order_date_for_calc = $status_row['order_date'];
+                            $estimated_delivery = get_estimated_delivery_date($order_date_for_calc);
+                        ?>
+                            <div class="order__timeline" style="margin-top: 30px; padding: 20px; background: #f9f9f9; border-radius: 8px;">
+                                <h5 style="margin-bottom: 20px; font-weight: 600;">Quá trình xử lý đơn hàng</h5>
+
+                                <div style="display: flex; gap: 15px; margin-bottom: 25px; flex-wrap: wrap; justify-content: space-between; align-items: flex-start;">
+                                    <!-- Timeline Step 1 -->
+                                    <div style="flex: 1; min-width: 100px; text-align: center;">
+                                        <div style="width: 50px; height: 50px; margin: 0 auto 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; background: <?php echo ($current_status >= 0 && $current_status != -1) ? '#2bcc71' : '#ddd'; ?>;">
+                                            <i class="<?php echo ($current_status >= 0 && $current_status != -1) ? 'mdi mdi-check-circle' : 'mdi mdi-radio-button-unchecked'; ?>"></i>
+                                        </div>
+                                        <p style="font-size: 11px; margin: 0; color: #666;">Chưa xác nhận</p>
+                                    </div>
+
+                                    <!-- Timeline Line 1 -->
+                                    <div style="flex: auto; display: flex; align-items: flex-start; padding-top: 14px; min-width: 20px;">
+                                        <div style="height: 2px; background: <?php echo ($current_status >= 1 && $current_status != -1) ? '#2bcc71' : '#ddd'; ?>; width: 100%;"></div>
+                                    </div>
+
+                                    <!-- Timeline Step 2 -->
+                                    <div style="flex: 1; min-width: 100px; text-align: center;">
+                                        <div style="width: 50px; height: 50px; margin: 0 auto 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; background: <?php echo ($current_status >= 1 && $current_status != -1) ? '#2bcc71' : '#ddd'; ?>;">
+                                            <i class="<?php echo ($current_status >= 1 && $current_status != -1) ? 'mdi mdi-check-circle' : 'mdi mdi-radio-button-unchecked'; ?>"></i>
+                                        </div>
+                                        <p style="font-size: 11px; margin: 0; color: #666;">Chờ chuẩn bị</p>
+                                    </div>
+
+                                    <!-- Timeline Line 2 -->
+                                    <div style="flex: auto; display: flex; align-items: flex-start; padding-top: 14px; min-width: 20px;">
+                                        <div style="height: 2px; background: <?php echo ($current_status >= 2 && $current_status != -1) ? '#2bcc71' : '#ddd'; ?>; width: 100%;"></div>
+                                    </div>
+
+                                    <!-- Timeline Step 3 -->
+                                    <div style="flex: 1; min-width: 100px; text-align: center;">
+                                        <div style="width: 50px; height: 50px; margin: 0 auto 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; background: <?php echo ($current_status >= 2 && $current_status != -1) ? '#2bcc71' : '#ddd'; ?>;">
+                                            <i class="<?php echo ($current_status >= 2 && $current_status != -1) ? 'mdi mdi-check-circle' : 'mdi mdi-radio-button-unchecked'; ?>"></i>
+                                        </div>
+                                        <p style="font-size: 11px; margin: 0; color: #666;">Đang giao hàng</p>
+                                    </div>
+
+                                    <!-- Timeline Line 3 -->
+                                    <div style="flex: auto; display: flex; align-items: flex-start; padding-top: 14px; min-width: 20px;">
+                                        <div style="height: 2px; background: <?php echo ($current_status >= 3 && $current_status != -1) ? '#2bcc71' : '#ddd'; ?>; width: 100%;"></div>
+                                    </div>
+
+                                    <!-- Timeline Step 4 -->
+                                    <div style="flex: 1; min-width: 100px; text-align: center;">
+                                        <div style="width: 50px; height: 50px; margin: 0 auto 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; background: <?php echo ($current_status >= 3 && $current_status != -1) ? '#2bcc71' : '#ddd'; ?>;">
+                                            <i class="<?php echo ($current_status >= 3 && $current_status != -1) ? 'mdi mdi-check-circle' : 'mdi mdi-radio-button-unchecked'; ?>"></i>
+                                        </div>
+                                        <p style="font-size: 11px; margin: 0; color: #666;">Đã giao hàng</p>
+                                    </div>
+                                </div>
+
+                                <!-- Delivery Dates -->
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
+                                    <div class="color-bg-blue" style="padding: 15px; border-radius: 6px;">
+                                        <p style="margin: 0; font-size: 12px; font-weight: 500;">Dự kiến giao</p>
+                                        <p style="margin: 8px 0 0 0; font-size: 16px; font-weight: 600;"><?php echo date('d/m/Y', strtotime($estimated_delivery)); ?></p>
+                                    </div>
+                                    <div class="<?php echo ($current_status == 3) ? 'color-bg-green' : 'color-bg-orange'; ?>" style="padding: 15px; border-radius: 6px;">
+                                        <p style="margin: 0; font-size: 12px; font-weight: 500;">Thực tế giao</p>
+                                        <p style="margin: 8px 0 0 0; font-size: 16px; font-weight: 600;">
+                                            <?php echo ($current_status == 3) ? 'Đã giao hàng' : 'Đang xử lý'; ?>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php } ?>
+
+                        <div style="margin-top: 20px;">
+                            <a href="modules/order/indonhang.php?order_code=<?php echo $order_code ?>" target="_blank" class="btn btn-outline-dark btn-fw">In Hóa Đơn</a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -133,5 +227,5 @@ if (isset($_GET['message']) && $_GET['message'] == 'success') {
 ?>
 
 <script>
-    window.history.pushState(null, "", "index.php?action=order&query=order_detail&order_code="+"<?php echo $order_code ?>");
+    window.history.pushState(null, "", "index.php?action=order&query=order_detail&order_code=" + "<?php echo $order_code ?>");
 </script>

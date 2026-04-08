@@ -1,22 +1,64 @@
 <?php
-$account_keyword = isset($_POST['account_keyword']) ? trim($_POST['account_keyword']) : '';
+if (isset($_GET['pagenumber'])) {
+    $page = (int)$_GET['pagenumber'];
+} else {
+    $page = 1;
+}
+
+if ($page <= 1) {
+    $begin = 0;
+    $page = 1;
+} else {
+    $begin = ($page * 10) - 10;
+}
+
+$account_keyword = isset($_GET['account_keyword']) ? trim($_GET['account_keyword']) : '';
+$account_type_filter = null;
+$account_status_filter = null;
+
+// Parse account_type_filter - accept 0, 1, 2
+if (isset($_GET['account_type_filter']) && $_GET['account_type_filter'] !== '') {
+    $account_type_filter = (int)$_GET['account_type_filter'];
+}
+
+// Parse account_status_filter - accept -1, 0, 1
+if (isset($_GET['account_status_filter']) && $_GET['account_status_filter'] !== '') {
+    $account_status_filter = (int)$_GET['account_status_filter'];
+}
+
+// Handle sorting
+$sort_column = 'account_id';
+$sort_order = 'DESC';
+$allowed_sorts = ['account_name', 'account_email', 'account_id'];
+
+if (isset($_GET['sort']) && in_array($_GET['sort'], $allowed_sorts)) {
+    $sort_column = $_GET['sort'];
+    $sort_order = (isset($_GET['order']) && $_GET['order'] === 'ASC') ? 'ASC' : 'DESC';
+}
+
+// Build WHERE clause with filters
+$where_clause = "WHERE 1=1";
 
 if ($account_keyword !== '') {
     $keyword_safe = mysqli_real_escape_string($mysqli, $account_keyword);
-    $sql_account_list = "
-        SELECT * 
-        FROM account
-        WHERE account_email LIKE '%{$keyword_safe}%'
-           OR account_name LIKE '%{$keyword_safe}%'
-        ORDER BY account_type DESC, account_id DESC
-    ";
-} else {
-    $sql_account_list = "
-        SELECT * 
-        FROM account
-        ORDER BY account_type DESC, account_id DESC
-    ";
+    $where_clause .= " AND (account_email LIKE '%{$keyword_safe}%' OR account_name LIKE '%{$keyword_safe}%')";
 }
+
+if ($account_type_filter !== null) {
+    $where_clause .= " AND account_type = {$account_type_filter}";
+}
+
+if ($account_status_filter !== null) {
+    $where_clause .= " AND account_status = {$account_status_filter}";
+}
+
+$sql_account_list = "
+    SELECT * 
+    FROM account
+    {$where_clause}
+    ORDER BY $sort_column $sort_order
+    LIMIT $begin,10
+";
 
 $query_account_list = mysqli_query($mysqli, $sql_account_list);
 
@@ -50,24 +92,44 @@ function account_status_badge($status)
     </div>
 </div>
 
+<div class="row mb-3">
+    <div class="col">
+        <form method="GET" action="index.php" class="d-flex align-items-center" style="gap:10px; flex-wrap:wrap;">
+            <input type="hidden" name="action" value="account">
+            <input type="hidden" name="query" value="account_list">
+
+            <label class="mb-0">Loại tài khoản:</label>
+            <select name="account_type_filter" class="form-control" style="width: 150px; height: 38px;">
+                <option value="">-- Tất cả --</option>
+                <option value="0" <?php echo ($account_type_filter === 0) ? 'selected' : ''; ?>>Khách hàng</option>
+                <option value="1" <?php echo ($account_type_filter === 1) ? 'selected' : ''; ?>>Nhân viên</option>
+                <option value="2" <?php echo ($account_type_filter === 2) ? 'selected' : ''; ?>>Quản trị viên</option>
+            </select>
+
+            <label class="mb-0">Tình trạng:</label>
+            <select name="account_status_filter" class="form-control" style="width: 150px; height: 38px;">
+                <option value="">-- Tất cả --</option>
+                <option value="1" <?php echo ($account_status_filter === 1) ? 'selected' : ''; ?>>Hoạt động</option>
+                <option value="0" <?php echo ($account_status_filter === 0) ? 'selected' : ''; ?>>Đã khóa</option>
+                <option value="-1" <?php echo ($account_status_filter === -1) ? 'selected' : ''; ?>>Tạm khóa</option>
+            </select>
+
+            <button type="submit" class="btn btn-primary btn-sm">Áp dụng</button>
+
+            <div style="flex: 1; text-align: right;">
+                <div class="input__search p-relative" style="display: inline-block; width: 250px;">
+                    <i class="icon-search p-absolute"></i>
+                    <input type="text" id="accountSearchInput" name="account_keyword" class="form-control" placeholder="Tìm theo tên hoặc email" value="<?php echo htmlspecialchars($account_keyword); ?>">
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="row">
     <div class="col-lg-12 grid-margin stretch-card">
         <div class="card">
             <div class="card-body">
-                <div class="main-pane-top d-flex justify-center align-center">
-                    <div class="input__search p-relative">
-                        <form class="search-form" action="" method="POST">
-                            <i class="icon-search p-absolute"></i>
-                            <input
-                                type="search"
-                                class="form-control"
-                                name="account_keyword"
-                                placeholder="Tìm theo tên hoặc email"
-                                title="Tìm theo tên hoặc email"
-                                value="<?php echo htmlspecialchars($account_keyword); ?>">
-                        </form>
-                    </div>
-                </div>
 
                 <div class="table-responsive">
                     <table class="table table-hover table-action">
@@ -78,8 +140,8 @@ function account_status_badge($status)
                                     <input type="checkbox" id="checkAll">
                                 </th>
                                 <th style="width: 50px; text-align: center;">STT</th>
-                                <th>Tên người dùng</th>
-                                <th>Email</th>
+                                <th style="cursor: pointer;"><a href="?action=account&query=account_list&sort=account_name&order=<?php echo ($sort_column === 'account_name' && $sort_order === 'ASC') ? 'DESC' : 'ASC'; ?>&account_keyword=<?php echo isset($_GET['account_keyword']) ? urlencode($_GET['account_keyword']) : ''; ?>&account_type_filter=<?php echo $account_type_filter !== null ? $account_type_filter : ''; ?>&account_status_filter=<?php echo $account_status_filter !== null ? $account_status_filter : ''; ?>" style="color: inherit; text-decoration: none;">Tên người dùng <?php if ($sort_column === 'account_name') echo ($sort_order === 'ASC') ? '↑' : '↓'; ?></a></th>
+                                <th style="cursor: pointer;"><a href="?action=account&query=account_list&sort=account_email&order=<?php echo ($sort_column === 'account_email' && $sort_order === 'ASC') ? 'DESC' : 'ASC'; ?>&account_keyword=<?php echo isset($_GET['account_keyword']) ? urlencode($_GET['account_keyword']) : ''; ?>&account_type_filter=<?php echo $account_type_filter !== null ? $account_type_filter : ''; ?>&account_status_filter=<?php echo $account_status_filter !== null ? $account_status_filter : ''; ?>" style="color: inherit; text-decoration: none;">Email <?php if ($sort_column === 'account_email') echo ($sort_order === 'ASC') ? '↑' : '↓'; ?></a></th>
                                 <th>Số điện thoại</th>
                                 <th>Loại tài khoản</th>
                                 <th>Tình trạng</th>
@@ -89,10 +151,9 @@ function account_status_badge($status)
                             </tr>
                         </thead>
                         <tbody>
-                            <?php $stt = 0;
+                            <?php $stt = $begin + 1;
                             if ($query_account_list && mysqli_num_rows($query_account_list) > 0) { ?>
-                                <?php while ($row = mysqli_fetch_array($query_account_list)) {
-                                    $stt++; ?>
+                                <?php while ($row = mysqli_fetch_array($query_account_list)) { ?>
                                     <tr>
                                         <td>
                                             <?php if (isset($_SESSION['account_type']) && (int)$_SESSION['account_type'] === 2) { ?>
@@ -108,7 +169,8 @@ function account_status_badge($status)
                                             <input type="checkbox" class="checkbox" id="<?php echo $row['account_id']; ?>">
                                         </td>
 
-                                        <td style="text-align: center;"><?php echo $stt; ?></td>
+                                        <td style="text-align: center;"><?php echo $stt;
+                                                                        $stt++; ?></td>
 
                                         <td><?php echo htmlspecialchars($row['account_name']); ?></td>
                                         <td><?php echo htmlspecialchars($row['account_email']); ?></td>
@@ -155,12 +217,99 @@ function account_status_badge($status)
                             <?php } else { ?>
                                 <tr>
                                     <td colspan="<?php echo (isset($_SESSION['account_type']) && (int)$_SESSION['account_type'] === 2) ? '8' : '7'; ?>" class="text-center">
-                                        Không tìm thấy tài khoản nào.
+                                        <div class="alert alert-info" style="margin: 20px auto; text-align: center; width: 100%; font-style: italic; color: #000; font-weight: normal;">
+                                            Không tìm thấy tài khoản nào phù hợp với bộ lọc của bạn
+                                        </div>
                                     </td>
                                 </tr>
                             <?php } ?>
                         </tbody>
                     </table>
+                </div>
+
+                <div class="pagination d-flex justify-center">
+                    <?php
+                    // Get total count for pagination
+                    $sql_count = "SELECT COUNT(*) as total FROM account {$where_clause}";
+
+                    $query_count = mysqli_query($mysqli, $sql_count);
+                    $row_count = mysqli_fetch_array($query_count);
+                    $total_records = $row_count['total'];
+                    $totalpage = ceil($total_records / 10);
+
+                    $currentLink = "index.php?action=account&query=account_list";
+                    if ($account_keyword !== '') {
+                        $currentLink .= "&account_keyword=" . urlencode($account_keyword);
+                    }
+                    if ($account_type_filter !== null) {
+                        $currentLink .= "&account_type_filter=" . $account_type_filter;
+                    }
+                    if ($account_status_filter !== null) {
+                        $currentLink .= "&account_status_filter=" . $account_status_filter;
+                    }
+
+                    if ($totalpage > 1) {
+                    ?>
+                        <ul class="pagination__items d-flex align-center justify-center">
+                            <?php if ($page != 1) { ?>
+                                <li class="pagination__item">
+                                    <a class="d-flex align-center" href="<?php echo $currentLink . '&pagenumber=' . ($page - 1); ?>">
+                                        <img src="images/arrow-left.svg" alt="">
+                                    </a>
+                                </li>
+                            <?php } ?>
+
+                            <?php
+                            // Smart pagination with ellipsis - Only show relevant pages
+                            $show_pages = array();
+
+                            // Always show first 2 pages
+                            for ($i = 1; $i <= min(2, $totalpage); $i++) {
+                                $show_pages[$i] = true;
+                            }
+
+                            // Always show last 2 pages  
+                            for ($i = max(1, $totalpage - 1); $i <= $totalpage; $i++) {
+                                $show_pages[$i] = true;
+                            }
+
+                            // Show current page and adjacent pages
+                            for ($i = max(1, $page - 1); $i <= min($totalpage, $page + 1); $i++) {
+                                $show_pages[$i] = true;
+                            }
+
+                            ksort($show_pages);
+                            $prev_page = 0;
+
+                            // Output pages with ... for gaps
+                            foreach ($show_pages as $page_num => $val) {
+                                // Show ... if there's a gap
+                                if ($page_num - $prev_page > 1) {
+                            ?>
+                                    <li class="pagination__item">
+                                        <span style="display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; color: #121212;">...</span>
+                                    </li>
+                                <?php
+                                }
+                                ?>
+                                <li class="pagination__item">
+                                    <a class="pagination__anchor <?php if ($page == $page_num) echo "active"; ?>" href="<?php echo $currentLink . '&pagenumber=' . $page_num; ?>">
+                                        <?php echo $page_num; ?>
+                                    </a>
+                                </li>
+                            <?php
+                                $prev_page = $page_num;
+                            } ?>
+
+                            <?php if ($page != $totalpage && $totalpage > 0) { ?>
+                                <li class="pagination__item">
+                                    <a class="d-flex align-center" href="<?php echo $currentLink . '&pagenumber=' . ($page + 1); ?>">
+                                        <img src="images/icon-nextlink.svg" alt="">
+                                    </a>
+                                </li>
+                            <?php } ?>
+                        </ul>
+                    <?php } ?>
                 </div>
             </div>
         </div>
@@ -194,6 +343,22 @@ function account_status_badge($status)
             message: "Không thể cập nhật tài khoản",
             type: "error",
             duration: 0,
+        });
+    }
+</script>
+
+<script>
+    // Auto-search functionality
+    var accountSearchInput = document.getElementById('accountSearchInput');
+    var accountSearchForm = accountSearchInput ? accountSearchInput.closest('form') : null;
+    var accountSearchTimeout;
+
+    if (accountSearchInput && accountSearchForm) {
+        accountSearchInput.addEventListener('keyup', function() {
+            clearTimeout(accountSearchTimeout);
+            accountSearchTimeout = setTimeout(function() {
+                accountSearchForm.submit();
+            }, 500);
         });
     }
 </script>

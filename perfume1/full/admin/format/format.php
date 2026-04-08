@@ -55,8 +55,7 @@ function format_account_type($value)
     $text = 'Khách hàng';
   } elseif ($value == 1) {
     $text = 'Nhân viên';
-  } 
-  else {
+  } else {
     $text = 'Quản trị viên';
   }
   echo $text;
@@ -121,7 +120,8 @@ function format_datetime($value)
 }
 
 // format 
-function format_status_style($value) {
+function format_status_style($value)
+{
   $class = '';
   if ($value == -1) {
     $class = 'color-bg-red';
@@ -137,7 +137,8 @@ function format_status_style($value) {
   echo $class;
 }
 
-function format_quantity_style($value) {
+function format_quantity_style($value)
+{
   $class = '';
   if ($value < 5) {
     $class = 'color-t-red';
@@ -165,4 +166,77 @@ function format_evaluate_style($value)
     $class = 'color-bg-green';
   }
   echo $class;
+}
+
+/**
+ * Get order timeline steps
+ * Returns array of status steps with indicator if current
+ */
+function get_order_timeline_steps($current_status)
+{
+  $steps = [
+    [-1, 'Bị hủy', 'cancelled'],
+    [0, 'Chưa xác nhận', 'pending'],
+    [1, 'Chờ chuẩn bị', 'confirmed'],
+    [2, 'Đang giao hàng', 'shipping'],
+    [3, 'Đã giao hàng', 'completed']
+  ];
+
+  return $steps;
+}
+
+/**
+ * Calculate estimated delivery date
+ * Default: order_date + 3 days
+ */
+function get_estimated_delivery_date($order_date)
+{
+  $date = new DateTime($order_date);
+  $date->modify('+3 days');
+  return $date->format('Y-m-d');
+}
+
+/**
+ * Get status step number for progress display
+ * -1 (cancelled) = 0 (special)
+ * 0 (pending) = 1
+ * 1 (confirmed) = 2
+ * 2 (shipping) = 3
+ * 3 (completed) = 4
+ */
+function get_status_step($status)
+{
+  if ($status == -1) return 0; // Cancelled - special case
+  if ($status == 0) return 1;  // Pending
+  if ($status == 1) return 2;  // Confirmed
+  if ($status == 2) return 3;  // Shipping
+  if ($status == 3) return 4;  // Completed
+  return 0;
+}
+
+/**
+ * Get completion status text and styling class
+ * Returns array with text and MDI icon class + color-bg class
+ */
+function get_completion_status($status)
+{
+  if ($status == -1) {
+    return [
+      'text' => 'Đơn hàng đã bị hủy',
+      'icon_class' => 'mdi mdi-close-circle',
+      'bg_class' => 'color-bg-red'
+    ];
+  } elseif ($status == 3) {
+    return [
+      'text' => 'Đơn hàng đã hoàn thành',
+      'icon_class' => 'mdi mdi-check-circle',
+      'bg_class' => 'color-bg-green'
+    ];
+  } else {
+    return [
+      'text' => 'Đơn hàng đang xử lý',
+      'icon_class' => 'mdi mdi-clock-outline',
+      'bg_class' => 'color-bg-orange'
+    ];
+  }
 }

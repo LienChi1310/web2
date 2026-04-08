@@ -29,101 +29,69 @@
         if ($action == 'order' && $query == 'order_list') {
             include("./modules/order/lietke.php");
         }
-        elseif ($action == 'order' && $query == 'order_payment') {
-            include("./modules/order/lichsuthanhtoan.php");
-        }
+        // HIDDEN (2026-04-08): Payment history moved to separate Payment module
+        // elseif ($action == 'order' && $query == 'order_payment') {
+        //     include("./modules/order/lichsuthanhtoan.php");
+        // }
         elseif ($action == 'order' && $query == 'order_add') {
             include("./modules/order/them.php");
-        }
-        elseif ($action == 'order' && $query == 'order_search') {
+        } elseif ($action == 'order' && $query == 'order_search') {
             include("./modules/order/timkiem.php");
-        }
-        elseif ($action == 'order' && $query == 'order_detail') {
+        } elseif ($action == 'order' && $query == 'order_detail') {
             include("./modules/order/chitiet.php");
-        }
-        elseif ($action == 'order' && $query == 'order_detail_online') {
+        } elseif ($action == 'order' && $query == 'order_detail_online') {
             include("./modules/order/chitiet_online.php");
-        }
-
-        elseif ($action == 'category' && $query == 'category_add') {
+        } elseif ($action == 'category' && $query == 'category_add') {
             include("./modules/category/them.php");
-        }
-        elseif ($action == 'category' && $query == 'category_list') {
+        } elseif ($action == 'category' && $query == 'category_list') {
             include("./modules/category/lietke.php");
-        }
-        elseif ($action == 'category' && $query == 'category_edit') {
+        } elseif ($action == 'category' && $query == 'category_edit') {
             include("./modules/category/sua.php");
-        }
-
-        elseif ($action == 'collection' && $query == 'collection_add') {
+        } elseif ($action == 'collection' && $query == 'collection_add') {
             include("./modules/collection/them.php");
-        }
-        elseif ($action == 'collection' && $query == 'collection_list') {
+        } elseif ($action == 'collection' && $query == 'collection_list') {
             include("./modules/collection/lietke.php");
-        }
-        elseif ($action == 'collection' && $query == 'collection_edit') {
+        } elseif ($action == 'collection' && $query == 'collection_edit') {
             include("./modules/collection/sua.php");
-        }
-
-        elseif ($action == 'product' && $query == 'product_add') {
+        } elseif ($action == 'product' && $query == 'product_add') {
             include("./modules/product/them.php");
-        }
-        elseif ($action == 'product' && $query == 'product_list') {
+        } elseif ($action == 'product' && $query == 'product_list') {
             include("./modules/product/lietke.php");
-        }
-        elseif ($action == 'product' && $query == 'product_edit') {
+        } elseif ($action == 'product' && $query == 'product_edit') {
             include("./modules/product/sua.php");
-        }
-        elseif ($action == 'product' && $query == 'product_search') {
+        } elseif ($action == 'product' && $query == 'product_search') {
             include("./modules/product/timkiem.php");
-        }
-
-        elseif ($action == 'account' && $query == 'my_account') {
+        } elseif ($action == 'account' && $query == 'my_account') {
             include("./modules/account/my_account.php");
-        }
-        elseif ($action == 'account' && $query == 'password_change') {
+        } elseif ($action == 'account' && $query == 'password_change') {
             include("./modules/account/password_change.php");
-        }
-        elseif ($action == 'account' && $query == 'account_list') {
+        } elseif ($action == 'account' && $query == 'account_list') {
             include("./modules/account/lietke.php");
-        }
-        elseif ($action == 'account' && $query == 'account_edit') {
+        } elseif ($action == 'account' && $query == 'account_edit') {
             include("./modules/account/sua.php");
-        }
-        elseif ($action == 'account' && $query == 'account_add') {
+        } elseif ($action == 'account' && $query == 'account_add') {
             include("./modules/account/them.php");
-        }
-
-        elseif ($action == 'brand' && $query == 'brand_list') {
+        } elseif ($action == 'brand' && $query == 'brand_list') {
             include("./modules/brand/lietke.php");
-        }
-        elseif ($action == 'brand' && $query == 'brand_add') {
+        } elseif ($action == 'brand' && $query == 'brand_add') {
             include("./modules/brand/them.php");
-        }
-        elseif ($action == 'brand' && $query == 'brand_edit') {
+        } elseif ($action == 'brand' && $query == 'brand_edit') {
             include("./modules/brand/sua.php");
-        }
-
-        elseif ($action == 'customer' && $query == 'customer_list') {
+        } elseif ($action == 'customer' && $query == 'customer_list') {
             include("./modules/customer/lietke.php");
-        }
-
-        elseif ($action == 'settings' && $query == 'settings') {
+        } elseif ($action == 'settings' && $query == 'settings') {
             include("./modules/settings/main.php");
         }
 
         // ======= MỞ LẠI ROUTE PHIẾU NHẬP KHO =======
         elseif ($action == 'inventory' && $query == 'inventory_list') {
             include("./modules/inventory/lietke.php");
-        }
-        elseif ($action == 'inventory' && $query == 'inventory_add') {
+        } elseif ($action == 'inventory' && $query == 'inventory_add') {
             include("./modules/inventory/them.php");
-        }
-        elseif ($action == 'inventory' && $query == 'inventory_detail') {
+        } elseif ($action == 'inventory' && $query == 'inventory_detail') {
             include("./modules/inventory/chitiet.php");
-        }
-         elseif ($action == 'inventory' && $query == 'inventory_edit') {
-            include("./modules/inventory/sua.php"); 
+        } elseif ($action == 'inventory' && $query == 'inventory_edit') {
+            include("./modules/inventory/sua.php");
         }
 
         // ======= ĐÃ GỠ HOÀN TOÀN CÁC ROUTE SAU =======
@@ -131,12 +99,10 @@
         // article&{add|list|edit} (Bài viết)
         // dashboard&dashboard     (Thống kê)
 
-          // ================= REPORT =================
+        // ================= REPORT =================
         elseif ($action == 'report' && $query == 'report_main') {
-            include("./modules/report/main.php"); 
-        }
-
-        else {
+            include("./modules/report/main.php");
+        } else {
             // Mặc định: trang home
             include("./modules/home.php");
         }

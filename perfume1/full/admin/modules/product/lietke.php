@@ -131,9 +131,8 @@ $query_product_list = mysqli_query($mysqli, $sql_product_list);
                         </thead>
                         <tbody>
                             <?php
-                            $stt = 0;
+                            $stt = $begin + 1;
                             while ($row = mysqli_fetch_array($query_product_list)) {
-                                $stt++;
                                 $profit_percent = isset($row['product_profit_percent']) ? (int)$row['product_profit_percent'] : 0;
                                 $is_low_stock = ((int)$row['product_quantity'] <= $low_stock_threshold);
                             ?>
@@ -148,7 +147,8 @@ $query_product_list = mysqli_query($mysqli, $sql_product_list);
                                     <td>
                                         <input type="checkbox" class="checkbox" title="Chọn sản phẩm" onclick="testChecked(); getCheckedCheckboxes();" id="<?php echo $row['product_id']; ?>">
                                     </td>
-                                    <td style="text-align: center;"><?php echo $stt; ?></td>
+                                    <td style="text-align: center;"><?php echo $stt;
+                                                                    $stt++; ?></td>
                                     <td><img src="modules/product/uploads/<?php echo $row['product_image']; ?>" class="product_image" alt="image"></td>
                                     <td>
                                         <?php echo $row['product_name']; ?>
@@ -198,8 +198,8 @@ $query_product_list = mysqli_query($mysqli, $sql_product_list);
                     }
                     ?>
                     <?php if ($row_count == 0) { ?>
-                        <div class="alert alert-info" style="margin: 20px auto; text-align: center; width: 100%;">
-                            <strong>Không có sản phẩm nào</strong> phù hợp với bộ lọc của bạn
+                        <div class="alert alert-info" style="margin: 20px auto; text-align: center; width: 100%; font-style: italic; color: #000; font-weight: normal;">
+                            Không có sản phẩm nào phù hợp với bộ lọc của bạn
                         </div>
                     <?php } else { ?>
                         <ul class="pagination__items d-flex align-center justify-center">
@@ -211,13 +211,47 @@ $query_product_list = mysqli_query($mysqli, $sql_product_list);
                                 </li>
                             <?php } ?>
 
-                            <?php for ($i = 1; $i <= $totalpage; $i++) { ?>
+                            <?php
+                            // Smart pagination with ellipsis - Smart pages to show
+                            $show_pages = array();
+
+                            // Always show first 2 pages
+                            for ($i = 1; $i <= min(2, $totalpage); $i++) {
+                                $show_pages[$i] = true;
+                            }
+
+                            // Always show last 2 pages  
+                            for ($i = max(1, $totalpage - 1); $i <= $totalpage; $i++) {
+                                $show_pages[$i] = true;
+                            }
+
+                            // Show current page and adjacent pages
+                            for ($i = max(1, $page - 1); $i <= min($totalpage, $page + 1); $i++) {
+                                $show_pages[$i] = true;
+                            }
+
+                            ksort($show_pages);
+                            $prev_page = 0;
+
+                            // Output pages with ... for gaps
+                            foreach ($show_pages as $page_num => $val) {
+                                // Show ... if there's a gap
+                                if ($page_num - $prev_page > 1) {
+                            ?>
+                                    <li class="pagination__item">
+                                        <span style="display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; color: #121212;">...</span>
+                                    </li>
+                                <?php
+                                }
+                                ?>
                                 <li class="pagination__item">
-                                    <a class="pagination__anchor <?php if ($page == $i) echo "active"; ?>" href="<?php echo $currentLink . '&pagenumber=' . $i; ?>">
-                                        <?php echo $i; ?>
+                                    <a class="pagination__anchor <?php if ($page == $page_num) echo "active"; ?>" href="<?php echo $currentLink . '&pagenumber=' . $page_num; ?>">
+                                        <?php echo $page_num; ?>
                                     </a>
                                 </li>
-                            <?php } ?>
+                            <?php
+                                $prev_page = $page_num;
+                            } ?>
 
                             <?php if ($page != $totalpage && $totalpage > 0) { ?>
                                 <li class="pagination__item">
