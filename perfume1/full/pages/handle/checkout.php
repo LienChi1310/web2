@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHASE 3: ĐẶT HÀNG THẬT VÀ GIẢ LẬP THANH TOÁN
  * - Ghi đơn vào DB (delivery, orders, order_detail, trừ tồn kho)
@@ -18,7 +19,8 @@ if (isset($mysqli) && $mysqli instanceof mysqli) {
 }
 
 /* ======= Helper: sinh số nguyên duy nhất cho cột ID không auto increment ======= */
-function generate_unique_int(mysqli $db, string $table, string $col, int $digits = 8): int {
+function generate_unique_int(mysqli $db, string $table, string $col, int $digits = 8): int
+{
     do {
         $code = (int)str_pad((string)random_int(0, (10 ** $digits) - 1), $digits, '0', STR_PAD_LEFT);
         $sql  = "SELECT 1 FROM {$table} WHERE {$col} = ? LIMIT 1";
@@ -55,7 +57,7 @@ $delivery_name    = trim($_POST['delivery_name'] ?? '');
 $delivery_address = trim($_POST['delivery_address'] ?? '');
 $delivery_phone   = trim($_POST['delivery_phone'] ?? '');
 $delivery_note    = trim($_POST['delivery_note'] ?? '');
-$order_type       = (int)($_POST['order_type'] ?? 1); // 1 COD – 2 Momo – 4 VNPAY
+$order_type       = (int)($_POST['order_type'] ?? 1); // ⏸️ 1 COD – 2 MoMo – 4 VNPAY (PAUSED)
 $mode             = $_POST['mode'] ?? 'cart';         // từ checkout.php gửi qua
 
 if ($address_type === 'new') {
@@ -83,8 +85,9 @@ if (!in_array($address_type, ['default', 'new'], true)) {
     $errors[] = 'Loại địa chỉ không hợp lệ.';
 }
 
-if (!in_array($order_type, [1, 2, 4], true)) {
-    $order_type = 1;
+if (!in_array($order_type, [1, 2], true)) {
+    // ⏸️ TEMPORARILY: Only COD (1) + MoMo (2) accepted (VNPAY paused)
+    $order_type = 1;  // fallback to COD
 }
 
 if (!empty($errors)) {
@@ -278,9 +281,11 @@ if ($order_type == 1) {
     $payment_text = "COD – Thanh toán khi nhận hàng";
 } elseif ($order_type == 2) {
     $payment_text = "Thanh toán MOMO (giả lập – chờ xác nhận)";
-} elseif ($order_type == 4) {
-    $payment_text = "Thanh toán VNPAY (giả lập – chờ xác nhận)";
 } else {
+    // ⏸️ TEMPORARILY: VNPAY gateway paused - default to generic message
+    // elseif ($order_type == 4) {
+    //     $payment_text = "Thanh toán VNPAY (giả lập – chờ xác nhận)";
+    // }
     $payment_text = "Thanh toán (giả lập)";
 }
 
@@ -304,9 +309,12 @@ if ($order_type == 1) {
     header('Location: ../../index.php?page=thankiu&order_type=1');
 } elseif ($order_type == 2) {
     header('Location: ../../index.php?page=payment_momo_fake');
-} elseif ($order_type == 4) {
-    header('Location: ../../index.php?page=payment_vnpay_fake');
 } else {
+    // ⏸️ TEMPORARILY: VNPAY gateway redirect disabled
+    // elseif ($order_type == 4) {
+    //     header('Location: ../../index.php?page=payment_vnpay_fake');
+    // }
     header('Location: ../../index.php?page=thankiu');
 }
+exit;
 exit;
