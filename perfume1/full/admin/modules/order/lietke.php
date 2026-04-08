@@ -18,6 +18,7 @@ $date_from    = isset($_GET['date_from']) ? trim($_GET['date_from']) : '';
 $date_to      = isset($_GET['date_to']) ? trim($_GET['date_to']) : '';
 $filter_addr  = isset($_GET['filter_addr']) ? trim($_GET['filter_addr']) : '';
 $order_search = isset($_GET['order_search']) ? trim($_GET['order_search']) : '';
+$order_type   = isset($_GET['order_type']) ? trim($_GET['order_type']) : ''; // Filter: tất cả (empty) / 1 (COD) / 2 (MoMo)
 
 // Logic: if filter_date is set, ignore date_from/date_to
 if ($filter_date !== '') {
@@ -45,6 +46,7 @@ $url_from   = ($date_from !== '') ? '&date_from=' . urlencode($date_from) : '';
 $url_to     = ($date_to !== '') ? '&date_to=' . urlencode($date_to) : '';
 $url_addr   = ($filter_addr !== '') ? '&filter_addr=' . urlencode($filter_addr) : '';
 $url_search = ($order_search !== '') ? '&order_search=' . urlencode($order_search) : '';
+$url_type   = ($order_type !== '') ? '&order_type=' . urlencode($order_type) : '';
 
 $where = [];
 $where[] = "1=1";
@@ -77,6 +79,14 @@ if ($filter_addr !== '') {
 if ($order_search !== '') {
     $order_search_safe = mysqli_real_escape_string($mysqli, $order_search);
     $where[] = "(orders.order_code LIKE '%{$order_search_safe}%' OR account.account_name LIKE '%{$order_search_safe}%' OR delivery.delivery_address LIKE '%{$order_search_safe}%')";
+}
+
+// ⏸️ Filter: Bỏ VNPAY + filter theo loại đơn hàng
+$where[] = "orders.order_type IN (1, 2)"; // COD + MoMo QR only
+if ($order_type === '1') {  // Filter: COD only
+    $where[] = "orders.order_type = 1";
+} elseif ($order_type === '2') {  // Filter: MoMo QR only
+    $where[] = "orders.order_type = 2";
 }
 
 $where_sql = implode(' AND ', $where);
@@ -115,7 +125,7 @@ $query_order_list = mysqli_query($mysqli, $sql_order_list);
                 <div style="display: flex; align-items: flex-end; gap: 8px;">
                     <label style="margin-bottom: 0; display: flex; align-items: center; gap: 6px; cursor: pointer;">
                         <input type="radio" name="date_filter_type" value="single" <?php echo ($date_from === '' && $date_to === '' ? 'checked' : ''); ?> onchange="document.getElementById('dateRangeFields').style.opacity = '0.5'; document.getElementById('dateRangeFields').style.pointerEvents = 'none'; document.getElementById('singleDateField').style.opacity = '1'; document.getElementById('singleDateField').style.pointerEvents = 'auto';">
-                        <span style="font-size: 12px;">Lọc 1 ngày</span>
+                        <span style="font-size: 12px;">Lọc theo ngày</span>
                     </label>
                     <div id="singleDateField" style="opacity: <?php echo ($filter_date !== '' ? '1' : '0.5'); ?>; pointer-events: <?php echo ($filter_date !== '' ? 'auto' : 'none'); ?>; transition: opacity 0.3s;">
                         <input type="date" name="filter_date" class="form-control" value="<?php echo htmlspecialchars($filter_date); ?>" style="min-width: 150px; height: 38px;">
@@ -181,6 +191,13 @@ $query_order_list = mysqli_query($mysqli, $sql_order_list);
                 <option value="-1" <?php echo (isset($_GET['order_status']) && $_GET['order_status'] === '-1') ? 'selected' : ''; ?>>Đã hủy</option>
             </select>
 
+            <label class="mb-0">Loại đơn:</label>
+            <select name="order_type" class="form-control" style="width: 200px;" onchange="this.form.submit();">
+                <option value="">-- Tất cả --</option>
+                <option value="1" <?php echo (isset($_GET['order_type']) && $_GET['order_type'] === '1') ? 'selected' : ''; ?>>COD (Thanh toán khi nhận)</option>
+                <option value="2" <?php echo (isset($_GET['order_type']) && $_GET['order_type'] === '2') ? 'selected' : ''; ?>>MoMo QR</option>
+            </select>
+
             <div style="flex: 1; text-align: right;">
                 <div class="input__search p-relative" style="display: inline-block; width: 250px;">
                     <i class="icon-search p-absolute"></i>
@@ -211,7 +228,7 @@ $query_order_list = mysqli_query($mysqli, $sql_order_list);
                                 <th style="cursor: pointer;"><a href="?action=order&query=order_list&sort=delivery_address&order=<?php echo ($sort_column === 'delivery_address' && $sort_order === 'ASC') ? 'DESC' : 'ASC'; ?><?php echo $url_date . $url_from . $url_to . $url_addr . $url_status; ?>" style="color: inherit; text-decoration: none;">Địa chỉ giao hàng <?php if ($sort_column === 'delivery_address') echo ($sort_order === 'ASC') ? '↑' : '↓'; ?></a></th>
                                 <th>Loại đơn hàng</th>
                                 <th class="text-center">Tình trạng đơn hàng</th>
-                                <th>Xóa</th>
+                                <th style="display:none;">Xóa</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -243,7 +260,8 @@ $query_order_list = mysqli_query($mysqli, $sql_order_list);
                                                 <?php echo format_order_status($row['order_status']); ?>
                                             </span>
                                         </td>
-                                        <td>
+                                        <!-- ⏸️ HIDDEN: Delete button (use hủy đơn instead) -->
+                                        <td style="display:none;">
                                             <a href="javascript:void(0);" onclick="confirmDeleteOrder(<?php echo $row['order_code']; ?>)">
                                                 Xóa
                                             </a>

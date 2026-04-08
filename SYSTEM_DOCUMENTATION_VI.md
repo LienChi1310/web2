@@ -4,10 +4,11 @@
 1. [Tổng Quan Hệ Thống](#tổng-quan-hệ-thống)
 2. [Kiến Trúc Dự Án](#kiến-trúc-dự-án)
 3. [Công Nghệ Sử Dụng](#công-nghệ-sử-dụng)
-4. [Cấu Trúc Cơ Sở Dữ Liệu](#cấu-trúc-cơ-sở-dữ-liệu)
-5. [Các Module Chính](#các-module-chính)
-6. [Tính Năng Hệ Thống](#tính-năng-hệ-thống)
-7. [Luồng Hoạt Động](#luồng-hoạt-động)
+4. [Cấu Trúc Hệ Thống Thanh Toán](#cấu-trúc-hệ-thống-thanh-toán) ⭐ **NEW**
+5. [Cấu Trúc Cơ Sở Dữ Liệu](#cấu-trúc-cơ-sở-dữ-liệu)
+6. [Các Module Chính](#các-module-chính)
+7. [Tính Năng Hệ Thống](#tính-năng-hệ-thống)
+8. [Luồng Hoạt Động](#luồng-hoạt-động)
 
 ---
 
@@ -157,7 +158,262 @@ perfume1/
 
 ---
 
-## 🗄️ Cấu Trúc Cơ Sở Dữ Liệu
+## � Cấu Trúc Hệ Thống Thanh Toán
+
+### Tổng Quan Phương Thức Thanh Toán
+
+Hệ thống GUHA Store hiện hỗ trợ **5 loại phương thức thanh toán** thông qua trường `order_type` trong bảng `orders`.
+
+| order_type | Tên | Mô Tả | Hiển Thị Frontend | Ghi Chú |
+|-----------|-----|------|------------------|--------|
+| **1** | **COD** | Thanh toán khi nhận hàng | ✅ Có | Mặc định, không cần gateway |
+| **2** | **MoMo QR** | Thanh toán MOMO QR Code | ✅ Có | Quét mã QR, thanh toán ngay |
+| **3** | **MoMo Transfer** | Thanh toán chuyển khoản MoMo | ❌ Không | Admin tạo thủ công |
+| **4** | **VNPAY** | Thanh toán chuyển khoản VNPAY | ❌ Không | ⚠️ Ngừng hiển thị frontend |
+| **5** | **Direct Purchase** | Mua hàng trực tiếp (Admin) | ❌ Không | Chỉ dùng tại quầy/admin |
+
+### Database Tables Liên Quan Thanh Toán
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    orders (Đơn Hàng)                        │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │ order_code | order_type (1,2,3,4,5) | order_status │    │
+│  │            | order_date | total_amount              │    │
+│  └─────────────────────────────────────────────────────┘    │
+│                    ▲                    ▲                     │
+│           (FK 1:N)   │                  │ (FK 1:N)           │
+│                      │                  │                     │
+│  ┌───────────────────┴──┐    ┌──────────┴──────────┐        │
+│  │                      │    │                     │        │
+│◀──▶                  ┌──────────┐            ┌──────────┐   │
+│  │  vnpay            │   momo   │            │ delivery │   │
+│  │  (54 records)     │(3 records)            │(213 addr)│   │
+│  │                   │          │            │          │   │
+│  ├─ vnp_id           ├─momo_id  │            ├─delivery_id
+│  ├─ vnp_amount       ├─amount   │            ├─delivery_name
+│  ├─ vnp_paydate      ├─trans_id │            ├─delivery_phone
+│  ├─ payment_status   ├─pay_type │            └─delivery_address
+│  ├─ order_code (FK)  └─order_code (FK)       
+│  └─ vnp_transactionno
+│
+└─────────────────────────────────────────────────────────────┘
+
+NOTE: 
+- vnpay & momo: Tracking giao dịch (lịch sử thanh toán)
+- Không có relationship FK hard trong schema
+- Nối bằng order_code (INT match)
+```
+
+### Loại Đơn Hàng & Trạng Thái Thanh Toán
+
+#### **order_type = 1 (COD - Thanh Toán Khi Nhận Hàng)**
+```
+Đặc điểm:
+  ✅ Không cần gateway thanh toán
+  ✅ Không lưu vào vnpay/momo table
+  ✅ Khách thanh toán khi nhận hàng
+  ✅ Admin confirm đơn trực tiếp
+  
+Luồng:
+  Customer → Choose COD → Place Order
+           → System create orders(order_type=1, status=0)
+           → Admin Review → Confirm (status=1)
+           → Prepare → Shipping → Deliver
+           → Customer Pay at Delivery
+           
+Database:
+  - orders: Lưu order_type=1, không có payment record
+  - No vnpay/momo entry
+```
+
+#### **order_type = 2 (MoMo QR Code)**
+```
+Đặc điểm:
+  ✅ Quét mã QR trên điện thoại
+  ✅ Thanh toán ngay (real-time)
+  ✅ Lưu vào momo table
+  ✅ payment_status: 0=pending, 1=success
+  
+Luồng:
+  Customer → Choose MoMo QR → Place Order
+           → Redirect to payment_momo_fake.php (giả lập)
+           → Show QR Code + Amount
+           → Customer Scan & Pay
+           → POST back payment_result.php
+           → Verify & Update momo table
+           → Update orders(status=1 if payment success)
+           
+Database:
+  - orders: Lưu order_type=2
+  - momo: Thêm record (trans_id, payment_status, amount)
+  - FK: momo.order_code → orders.order_code
+```
+
+#### **order_type = 3 (MoMo Chuyển Khoản)**
+```
+Đặc điểm:
+  ❌ Không hiển thị trên Frontend
+  ✅ Admin tạo thủ công khi khách chuyển khoản
+  ✅ Cần verify manual số tiền
+  ✅ Hiếm sử dụng (chỉ 0 records hiện tại)
+  
+Luồng:
+  Customer → Send money to MoMo account (manual)
+           → Tell admin (call/chat)
+           → Admin receive & verify
+           → Admin create orders(order_type=3) manual
+           → Update momo table + payment_status=1
+           
+Database:
+  - orders: Admin thêm order_type=3
+  - momo: Manual record (không qua hệ thống)
+  - ⚠️ Không có auto-update, cần process admin
+```
+
+#### **order_type = 4 (VNPAY - Chuyển Khoản Ngân Hàng) [ARCHIVED]**
+```
+Status: ⚠️ NGỪNG HIỂN THỊ trên Frontend
+  → Chỉ giữ cho lịch sử lệnh hàng cũ (54 records)
+  → Không chấp nhận thanh toán VNPAY mới
+  → Admin không thể tạo đơn VNPAY mới
+
+Đặc điểm (để tham khảo lịch sử):
+  ✅ Cổng thanh toán online
+  ✅ Hỗ trợ thẻ ATM/Credit Card
+  ✅ Lưu vào vnpay table
+  ✅ 54 giao dịch trong database
+  ✅ payment_status: 0=pending, 1=success
+  
+Database:
+  - vnpay table: 54 records (lịch sử, không tạo mới)
+  - FK: vnpay.order_code → orders.order_code
+  
+Lưu Ý:
+  - Khách hàng orders cũ (order_type=4) vẫn hiển thị "VNPAY (Ngừng dùng)"
+  - payment_result.php sẽ reject VNPAY callbacks
+  - Frontend checkout.php không có nút VNPAY
+```
+
+#### **order_type = 5 (Direct Purchase - Admin Only)**
+```
+Đặc điểm:
+  ❌ Không hiển thị Frontend
+  ✅ Admin tạo đơn hàng trực tiếp tại quầy
+  ✅ Hàng giao được confirm ngay (status=3)
+  ✅ Thanh toán ngay tại quầy (tiền mặt)
+  
+Luồng:
+  Customer walk-in → Admin create order
+                  → Scan products/input qty
+                  → Accept payment (cash)
+                  → orders(order_type=5, status=3)
+                  → Print receipt + give product
+                  
+Database:
+  - orders: order_type=5, status=3 (ghi ngay as delivered)
+  - No vnpay/momo entry (thanh toán tức thì)
+  - Dùng cho direct POS sales
+```
+
+### Mối Quan Hệ Bảng & Foreign Keys
+
+```sql
+-- Relationship Diagram (Logical)
+
+orders
+  ├─ order_code: INT (Primary reference)
+  ├─ order_type: INT (1-5 payment type)
+  ├─ account_id: INT (FK → account)
+  ├─ delivery_id: INT (FK → delivery)
+  └─ order_status: INT
+
+  ↓ (FK Link via order_code)
+
+vnpay (54 records - archived)
+  ├─ vnp_id: INT (PK)
+  ├─ order_code: INT (FK to orders - TEXT match)
+  ├─ vnp_amount: VARCHAR
+  ├─ vnp_bankcode: VARCHAR
+  ├─ payment_status: INT (0=pending, 1=success)
+  └─ ... (transaction details - lịch sử, không dùng mới)
+
+momo (3 records)
+  ├─ momo_id: INT (PK)
+  ├─ order_code: INT (FK to orders - TEXT match)
+  ├─ momo_amount: VARCHAR
+  ├─ trans_id: INT
+  ├─ payment_status: INT (0=pending, 1=success)
+  └─ ... (transaction details)
+
+metrics (39 records)
+  └─ Ghi nhận metric_order, metric_sales per day
+    ├─ Không lưu payment_type breakdown
+    ├─ Tổng hóa từ orders table
+    └─ Dùng cho dashboard KPI
+```
+
+### File Code Liên Quan Thanh Toán
+
+**Frontend (Customer-facing)**:
+- `pages/base/checkout.php` - Form thanh toán (radio select order_type=1,2 chỉ)
+- `pages/main/payment_momo_fake.php` - Giả lập MoMo payment (dev only)
+- `pages/handle/payment_result.php` - Xử lý callback từ MoMo gateway (VNPAY rejected)
+
+**Admin Panel**:
+- `admin/format/format.php` - `format_order_type()` (map 1-5 → text)
+- `admin/modules/order/lichsuthanhtoan.php` - Lịch sử & refund UI
+- `admin/modules/order/xuly.php` - Update order status & handle refund
+- `admin/modules/home.php` - Dashboard count by order_type
+
+**Other**:
+- `config_momo.json` - MoMo API credentials
+- `mail/sendmail.php` - Email notification
+
+### Thống Kê Thanh Toán Hiện Tại
+
+```
+Tổng: 160 đơn hàng (sample data)
+
+Breakdown theo order_type (hiện tại):
+  - order_type 1 (COD):          ~70 đơn (khoảng ~44%)
+  - order_type 2 (MoMo QR):       1 đơn (khoảng ~1%) - momo table: 3 records
+  - order_type 3 (MoMo Trans):    0 đơn (0%)
+  - order_type 4 (VNPAY):        40+ đơn (khoảng ~25%) - vnpay table: 54 records [ARCHIVED]
+  - order_type 5 (Direct):       50+ đơn (khoảng ~30%) - hàng đã giao
+
+Thanh toán lưu trong database:
+  - momo table: 3 records (active MoMo only)
+  - vnpay table: 54 records (archived VNPAY history)
+  - Total: 3 giao dịch online mới (MoMo chỉ)
+```
+
+### � Thay Đổi Hệ Thống: Đơn Giản Hóa Thanh Toán (Đã Thực Hiện)
+
+**Status: ✅ VNPAY ẩn (non-active) - chỉ giữ lịch sử**
+
+```
+Trước (5 types):     1(COD) 2(MoMo QR) 3(MoMo T) 4(VNPAY) 5(Direct)
+Sau  (Active):       1(COD) 2(MoMo QR)          [^1]     5(Direct)
+                              ↑ Frontend only ↑
+[^1]: Type 4 (VNPAY) - Ẩn khỏi frontend, giữ 54 records lịch sử
+
+Thay Đổi Code:
+  ✅ User Frontend: COD + MoMo QR chỉ (VNPAY button hidden từ checkout.php)
+  ✅ Admin Panel: Chỉ QUẢN LÝ MoMo payments (not VNPAY)
+  ✅ format_order_type(): Type 4 → "VNPAY (Ngừng dùng)" cho orders cũ
+  ✅ payment_result.php: Reject VNPAY callbacks
+  ✅ Database: KHÔNG THAY ĐỔI (vnpay table giữ 54 records lịch sử)
+  
+Rollback Plan:
+  - Tất cả thay đổi là code-only (hide/reject)
+  - Chỉ uncomment 1-2 dòng để restore VNPAY nếu cần
+  - Zero data loss, 100% backward compatible
+```
+
+---
+
+## �🗄️ Cấu Trúc Cơ Sở Dữ Liệu
 
 ### Tổng Quan
 - **Database**: `dbperfume_clone`
@@ -217,13 +473,27 @@ Kiểu Dữ Liệu:
   - account_id: INT(11) - ID khách hàng (FK: account)
   - delivery_id: INT(11) - FK: delivery.delivery_id
   - total_amount: INT(11) - Tổng tiền (VND)
-  - order_type: INT(11) - Loại đơn (0-5)
-  - order_status: INT(11) - Trạng thái (3=Delivered, 2=Shipping, 1=Pending, -1=Cancelled, 0=New)
+  - order_type: INT(11) - Phương thức thanh toán (Xem bảng chi tiết dưới)
+  - order_status: INT(11) - Trạng thái xử lý (3=Đã giao, 2=Đang giao, 1=Chờ chuẩn bị, 0=Xử lý, -1=Đã hủy)
 
 Ghi Chú:
-  ❌ KHÔNG CÓ: payment_method, payment_status, shipping_address
-  ✅ Thông tin giao: xem delivery table; Thanh toán: xem vnpay/momo
+  ❌ KHÔNG CÓ: payment_method, payment_status, shipping_address (các trường này được lưu riêng)
+  ✅ Thông tin giao hàng: xem delivery table
+  ✅ Thông tin thanh toán (nếu online): xem vnpay/momo table
   ✅ 160 đơn hàng (mẫu)
+
+Chi Tiết order_type Field (Phương Thức Thanh Toán):
+  ╔════════════════════════════════════════════════════════════════╗
+  ║ Giá trị │ Tên              │ Lưu Vào      │ Mục Đích          ║
+  ╠════════════════════════════════════════════════════════════════╣
+  ║   1     │ COD (Nhận hàng)   │ orders only  │ Thanh toán khi TK  ║
+  ║   2     │ MoMo QR          │ orders+momo  │ Quét mã QR        ║
+  ║   3     │ MoMo Transfer    │ orders+momo  │ Chuyển khoản      ║
+  ║   4     │ VNPAY            │ orders+vnpay │ Cổng thanh toán   ║
+  ║   5     │ Direct (Admin)   │ orders only  │ Bán trực tiếp     ║
+  ╚════════════════════════════════════════════════════════════════╝
+
+Để hiểu chi tiết hơn, xem phần "🔧 Cấu Trúc Hệ Thống Thanh Toán" ở trên.
 ```
 
 #### 4. **order_detail** - Chi Tiết Đơn Hàng (5 cột)

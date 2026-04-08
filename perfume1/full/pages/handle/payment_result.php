@@ -1,5 +1,6 @@
 <?php
-// payment_result.php – xử lý kết quả thanh toán GIẢ LẬP cho MoMo / VNPAY
+// payment_result.php – xử lý kết quả thanh toán GIẢ LẬP cho MoMo
+// ⏸️ TEMPORARILY: VNPAY payment gateway is paused (API disabled)
 
 if (session_status() === PHP_SESSION_NONE) {
     session_name('guha');
@@ -11,7 +12,7 @@ if (isset($mysqli) && $mysqli instanceof mysqli) {
     @$mysqli->set_charset('utf8mb4');
 }
 
-$gateway    = $_GET['gateway'] ?? '';          // momo | vnpay
+$gateway    = $_GET['gateway'] ?? '';          // ⏸️ TEMPORARILY: only 'momo' accepted (vnpay disabled)
 $status     = $_GET['status']  ?? '';          // success | fail (hoặc cancel)
 $order_code = trim($_GET['order_code'] ?? ''); // ĐỂ DẠNG STRING, KHÔNG ÉP int
 
@@ -22,8 +23,10 @@ if ($order_code === '' || empty($_SESSION['order_summary'])) {
 }
 
 // Kiểm tra order_code trong session cho chắc
-if (!empty($_SESSION['order_summary']['order_code'])
-    && (string)$_SESSION['order_summary']['order_code'] !== (string)$order_code) {
+if (
+    !empty($_SESSION['order_summary']['order_code'])
+    && (string)$_SESSION['order_summary']['order_code'] !== (string)$order_code
+) {
     // Không trùng thì thôi, tránh update nhầm đơn
     header('Location: ../../index.php?page=thankiu');
     exit;
@@ -32,13 +35,20 @@ if (!empty($_SESSION['order_summary']['order_code'])
 /**
  * TRƯỜNG HỢP 1: THANH TOÁN THÀNH CÔNG
  * - Cập nhật orders.order_status = 1 (đã thanh toán)
- * - order_type = 2 (MoMo) hoặc 4 (VNPAY)
+ * - order_type = 2 (MoMo only - VNPAY is now paused)
  * - Cập nhật session order_summary (is_paid = 1)
  * - Chuyển sang trang thankiu (thankiu sẽ xoá giỏ hàng như hiện tại)
  */
 if ($status === 'success') {
-    // 2 = MoMo, 4 = VNPAY
-    $order_type = ($gateway === 'momo') ? 2 : 4;
+    // ⏸️ TEMPORARILY: Only MoMo gateway is active
+    if ($gateway !== 'momo') {
+        // Reject non-MoMo payments (VNPAY paused)
+        header('Location: ../../index.php?page=cart&payment=unsupported_gateway');
+        exit;
+    }
+
+    // MoMo only
+    $order_type = 2;
 
     $stmt = $mysqli->prepare("
         UPDATE orders
@@ -54,10 +64,7 @@ if ($status === 'success') {
     }
 
     // Cập nhật info cho màn thankiu
-    $_SESSION['order_summary']['payment_method'] =
-        ($gateway === 'momo')
-            ? 'Thanh toán MOMO'
-            : 'Thanh toán VNPAY';
+    $_SESSION['order_summary']['payment_method'] = 'Thanh toán MOMO';
     $_SESSION['order_summary']['is_paid'] = 1;
 
     header('Location: ../../index.php?page=thankiu');

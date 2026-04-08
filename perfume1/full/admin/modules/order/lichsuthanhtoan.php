@@ -14,19 +14,25 @@ if ($page <= 1) {
 
 $payment_search = isset($_GET['payment_search']) ? trim($_GET['payment_search']) : '';
 
-// Handle sorting - always by date DESC as default
+// Handle sorting - only MoMo for now
+// ⏸️ TEMPORARILY: Show MoMo only (VNPAY feature paused)
 $sort_order = 'DESC';
 
-if (isset($_GET['payment_type']) && $_GET['payment_type'] == 'momo') {
-    $sort_column_order = 'momo_id DESC';
-    if ($payment_search !== '') {
-        $payment_search_safe = mysqli_real_escape_string($mysqli, $payment_search);
-        $sql_payment_list = "SELECT * FROM momo WHERE order_code LIKE '%{$payment_search_safe}%' ORDER BY $sort_column_order LIMIT $begin,10";
-    } else {
-        $sql_payment_list = "SELECT * FROM momo ORDER BY $sort_column_order LIMIT $begin,10";
-    }
-    $query_payment_list = mysqli_query($mysqli, $sql_payment_list);
+// ⏸️ TEMPORARILY HIDDEN: VNPAY payment filter
+// if (isset($_GET['payment_type']) && $_GET['payment_type'] == 'vnpay') { ... }
+
+// Active: MoMo Payment History (default)
+$sort_column_order = 'momo_id DESC';
+if ($payment_search !== '') {
+    $payment_search_safe = mysqli_real_escape_string($mysqli, $payment_search);
+    $sql_payment_list = "SELECT * FROM momo WHERE order_code LIKE '%{$payment_search_safe}%' ORDER BY $sort_column_order LIMIT $begin,10";
 } else {
+    $sql_payment_list = "SELECT * FROM momo ORDER BY $sort_column_order LIMIT $begin,10";
+}
+$query_payment_list = mysqli_query($mysqli, $sql_payment_list);
+
+/* ⏸️ TEMPORARILY HIDDEN: VNPAY Payment History
+else {
     $sort_column_order = 'vnp_paydate DESC';
     if ($payment_search !== '') {
         $payment_search_safe = mysqli_real_escape_string($mysqli, $payment_search);
@@ -36,6 +42,7 @@ if (isset($_GET['payment_type']) && $_GET['payment_type'] == 'momo') {
     }
     $query_payment_list = mysqli_query($mysqli, $sql_payment_list);
 }
+*/
 ?>
 <div class="row">
     <div class="col">
@@ -52,10 +59,12 @@ if (isset($_GET['payment_type']) && $_GET['payment_type'] == 'momo') {
             <input type="hidden" name="query" value="order_payment">
 
             <label class="mb-0">Cổng thanh toán:</label>
-            <select name="payment_type" class="form-control" style="width: 150px;" onchange="this.form.submit();">
-                <option value="">-- VNPAY --</option>
-                <option value="vnpay" <?php echo isset($_GET['payment_type']) && $_GET['payment_type'] === 'vnpay' ? 'selected' : ''; ?>>VNPAY</option>
-                <option value="momo" <?php echo isset($_GET['payment_type']) && $_GET['payment_type'] === 'momo' ? 'selected' : ''; ?>>MoMo</option>
+            <select name="payment_type" class="form-control" style="width: 150px;" disabled>
+                <!-- ⏸️ TEMPORARILY: Show MoMo only -->
+                <option value="momo">MoMo</option>
+                <!-- ⏸️ TEMPORARILY HIDDEN: VNPAY option
+                <option value="vnpay">VNPAY</option>
+                -->
             </select>
 
             <div style="flex: 1; text-align: right;">
@@ -73,166 +82,121 @@ if (isset($_GET['payment_type']) && $_GET['payment_type'] == 'momo') {
         <div class="card">
             <div class="card-body">
 
-                <div class="table-responsive">
-                    <?php
-                    if (isset($_GET['payment_type']) && $_GET['payment_type'] == 'momo') {
-                    ?>
-                        <table class="table table-hover table-action">
-                            <thead>
-                                <tr>
-                                    <th></th>
-                                    <th>
-                                        <input type="checkbox" id="checkAll">
-                                    </th>
-                                    <th style="width: 50px; text-align: center;">STT</th>
-                                    <th>Mã đơn hàng</th>
-                                    <th>Thời gian</th>
-                                    <th>Tổng tiền</th>
-                                    <th>Thẻ</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php
-                                $stt = $begin + 1;
-                                while ($row = mysqli_fetch_array($query_payment_list)) {
-                                ?>
-                                    <tr>
-                                        <td>
-                                            <a href="index.php?action=order&query=order_detail&order_code=<?php echo $row['order_code'] ?>">
-                                                <div class="icon-edit">
-                                                    <img class="w-100 h-100" src="images/icon-view.png" alt="">
-                                                </div>
-                                            </a>
-                                        </td>
-                                        <td>
-                                            <input type="checkbox" class="checkbox" onclick="testChecked(); getCheckedCheckboxes();" id="<?php echo $row['order_code'] ?>">
-                                        </td>
-                                        <td style="text-align: center;"><?php echo $stt;
-                                                                        $stt++; ?></td>
-                                        <td><?php echo $row['order_code'] ?></td>
-                                        <td><?php echo $row['payment_date'] ?></td>
-                                        <td><?php echo number_format($row['momo_amount']) ?>đ</td>
-                                        <td><?php echo $row['pay_type'] ?></td>
-                                    </tr>
-                                <?php
-                                }
-                                ?>
-                            </tbody>
-                        </table>
-                    <?php
-                    } else {
-                    ?>
-                        <table class="table table-hover table-action">
-                            <thead>
-                                <tr>
-                                    <th></th>
-                                    <th>
-                                        <input type="checkbox" id="checkAll">
-                                    </th>
-                                    <th style="width: 50px; text-align: center;">STT</th>
-                                    <th>Mã đơn hàng</th>
-                                    <th>Thời gian</th>
-                                    <th>Tổng tiền</th>
-                                    <th>Ngân hàng</th>
-                                    <th>Loại</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php
-                                $stt = $begin + 1;
-                                while ($row = mysqli_fetch_array($query_payment_list)) {
-                                ?>
-                                    <tr>
-                                        <td>
-                                            <a href="index.php?action=order&query=order_detail&order_code=<?php echo $row['order_code'] ?>">
-                                                <div class="icon-edit">
-                                                    <img class="w-100 h-100" src="images/icon-view.png" alt="">
-                                                </div>
-                                            </a>
-                                        </td>
-                                        <td>
-                                            <input type="checkbox" class="checkbox" onclick="testChecked(); getCheckedCheckboxes();" id="<?php echo $row['order_code'] ?>">
-                                        </td>
-                                        <td style="text-align: center;"><?php echo $stt;
-                                                                        $stt++; ?></td>
-                                        <td><?php echo $row['order_code'] ?></td>
-                                        <td><?php echo format_datetime($row['vnp_paydate']) ?></td>
-                                        <td><?php echo number_format($row['vnp_amount'] / 100) ?>đ</td>
-                                        <td><?php echo $row['vnp_bankcode'] ?></td>
-                                        <td><?php echo $row['vnp_cardtype'] ?></td>
-                                    </tr>
-                                <?php
-                                }
-                                ?>
-                            </tbody>
-                        </table>
-                    <?php
-                    }
-                    ?>
-                </div>
-                <div class="pagination d-flex justify-center">
-                    <?php
+                <?php
+                // ⏸️ TEMPORARILY: Show MoMo only
+                ?>
+                <table class="table table-hover table-action">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>
+                                <input type="checkbox" id="checkAll">
+                            </th>
+                            <th style="width: 50px; text-align: center;">STT</th>
+                            <th>Mã đơn hàng</th>
+                            <th>Thời gian</th>
+                            <th>Tổng tiền</th>
+                            <th>Thẻ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        $stt = $begin + 1;
+                        while ($row = mysqli_fetch_array($query_payment_list)) {
+                        ?>
+                            <tr>
+                                <td>
+                                    <a href="index.php?action=order&query=order_detail&order_code=<?php echo $row['order_code'] ?>">
+                                        <div class="icon-edit">
+                                            <img class="w-100 h-100" src="images/icon-view.png" alt="">
+                                        </div>
+                                    </a>
+                                </td>
+                                <td>
+                                    <input type="checkbox" class="checkbox" onclick="testChecked(); getCheckedCheckboxes();" id="<?php echo $row['order_code'] ?>">
+                                </td>
+                                <td style="text-align: center;"><?php echo $stt;
+                                                                $stt++; ?></td>
+                                <td><?php echo $row['order_code'] ?></td>
+                                <td><?php echo $row['payment_date'] ?></td>
+                                <td><?php echo number_format($row['momo_amount']) ?>đ</td>
+                                <td><?php echo $row['pay_type'] ?></td>
+                            </tr>
+                        <?php
+                        }
+                        ?>
+                    </tbody>
+                </table>
+                <!-- ⏸️ TEMPORARILY HIDDEN: VNPAY Payment History table -->
+            </div>
+            <div class="pagination d-flex justify-center">
+                <?php
+                // ⏸️ TEMPORARILY: Show MoMo pagination only
+                $sql_pay_list = "SELECT * FROM momo ORDER BY momo_id DESC";
+
+                /* ⏸️ TEMPORARILY HIDDEN: VNPAY pagination
                     if (isset($_GET['payment_type']) && $_GET['payment_type'] == 'momo') {
                         $sql_pay_list = "SELECT * FROM momo ORDER BY momo_id DESC";
                     } else {
                         $sql_pay_list = "SELECT * FROM vnpay ORDER BY vnp_id DESC";
                     }
+                    */
 
-                    $query_pages = mysqli_query($mysqli, $sql_pay_list);
-                    $row_count = mysqli_num_rows($query_pages);
-                    $totalpage = ceil($row_count / 10);
-                    $currentLink = $_SERVER['REQUEST_URI'];
-                    if ($totalpage > 1) {
-                    ?>
-                        <ul class="pagination__items d-flex align-center justify-center">
-                            <?php
-                            if ($page != 1) {
-                            ?>
-                                <li class="pagination__item">
-                                    <a class="d-flex align-center" href="<?php echo $currentLink ?>&pagenumber=<?php echo $i + 1 ?>">
-                                        <img src="images/arrow-left.svg" alt="">
-                                    </a>
-                                </li>
-                            <?php
-                            }
-                            ?>
-                            <?php
-                            for ($i = 1; $i <= $totalpage; $i++) {
-                            ?>
-                                <li class="pagination__item">
-                                    <a class="pagination__anchor <?php if ($page == $i) {
-                                                                        echo "active";
-                                                                    } ?>" href="<?php echo $currentLink ?>&pagenumber=<?php echo $i ?>"><?php echo $i ?></a>
-                                </li>
-                            <?php
-                            }
-                            ?>
-                            <?php
-                            if ($page != $totalpage) {
-                            ?>
-                                <li class="pagination__item">
-                                    <a class="d-flex align-center" href="<?php echo $currentLink ?>&pagenumber=<?php echo $i ?>">
-                                        <img src="images/icon-nextlink.svg" alt="">
-                                    </a>
-                                </li>
-                            <?php
-                            }
-                            ?>
-                        </ul>
-                    <?php
-                    } elseif ($totalpage == 0) {
-                    ?>
-                        <div class="w-100 text-center">
-                            <p class="color-t-red">Không có đơn hàng nào cần xử lý !</p>
-                        </div>
-                    <?php
-                    }
-                    ?>
+                $query_pages = mysqli_query($mysqli, $sql_pay_list);
+                $row_count = mysqli_num_rows($query_pages);
+                $totalpage = ceil($row_count / 10);
+                $currentLink = $_SERVER['REQUEST_URI'];
+                if ($totalpage > 1) {
+                ?>
+                    <ul class="pagination__items d-flex align-center justify-center">
+                        <?php
+                        if ($page != 1) {
+                        ?>
+                            <li class="pagination__item">
+                                <a class="d-flex align-center" href="<?php echo $currentLink ?>&pagenumber=<?php echo $i + 1 ?>">
+                                    <img src="images/arrow-left.svg" alt="">
+                                </a>
+                            </li>
+                        <?php
+                        }
+                        ?>
+                        <?php
+                        for ($i = 1; $i <= $totalpage; $i++) {
+                        ?>
+                            <li class="pagination__item">
+                                <a class="pagination__anchor <?php if ($page == $i) {
+                                                                    echo "active";
+                                                                } ?>" href="<?php echo $currentLink ?>&pagenumber=<?php echo $i ?>"><?php echo $i ?></a>
+                            </li>
+                        <?php
+                        }
+                        ?>
+                        <?php
+                        if ($page != $totalpage) {
+                        ?>
+                            <li class="pagination__item">
+                                <a class="d-flex align-center" href="<?php echo $currentLink ?>&pagenumber=<?php echo $i ?>">
+                                    <img src="images/icon-nextlink.svg" alt="">
+                                </a>
+                            </li>
+                        <?php
+                        }
+                        ?>
+                    </ul>
+                <?php
+                } elseif ($totalpage == 0) {
+                ?>
+                    <div class="w-100 text-center">
+                        <p class="color-t-red">Không có đơn hàng nào cần xử lý !</p>
+                    </div>
+                <?php
+                }
+                ?>
 
-                </div>
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <!-- Auto-submit search -->
