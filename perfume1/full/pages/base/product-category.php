@@ -27,6 +27,11 @@ function img_url_phase1($filename)
 
 $category_id = isset($_GET['category_id']) ? (int)$_GET['category_id'] : 0;
 
+/* ---- Phân trang ---- */
+$page_num = max(1, (int)($_GET['pagenumber'] ?? 1));
+$limit = 9;
+$offset = ($page_num - 1) * $limit;
+
 /* ---- Xử lý sắp xếp theo giá ---- */
 $priceSort = strtolower($_GET['pricesort'] ?? ''); // asc | desc | ''
 switch ($priceSort) {
@@ -45,18 +50,30 @@ switch ($priceSort) {
 }
 
 if ($category_id > 0) {
+    $sql_count = "
+        SELECT COUNT(*) AS total
+        FROM product
+        WHERE product_status = 1
+          AND product_category = {$category_id}
+    ";
+    $query_count = mysqli_query($mysqli, $sql_count);
+    $row_count = mysqli_fetch_assoc($query_count);
+    $total_product = (int)($row_count['total'] ?? 0);
+    $total_pages = max(1, (int)ceil($total_product / $limit));
+
     $sql_product_list = "
         SELECT *
         FROM product
         WHERE product_status = 1
           AND product_category = {$category_id}
         {$orderBy}
+        LIMIT {$offset}, {$limit}
     ";
     $query_product_list = mysqli_query($mysqli, $sql_product_list);
-    $total_product = $query_product_list ? mysqli_num_rows($query_product_list) : 0;
 } else {
     $query_product_list = false;
     $total_product = 0;
+    $total_pages = 1;
 }
 ?>
 <div class="product-list">
@@ -165,5 +182,42 @@ if ($category_id > 0) {
                 </div>
             <?php endif; ?>
         </div>
+
+        <?php if ($total_pages > 1 && $query_product_list): ?>
+            <div class="row">
+                <div class="col">
+                    <div class="pagination">
+                        <ul class="pagination__items d-flex align-center justify-center">
+                            <?php if ($page_num > 1): ?>
+                                <li class="pagination__item">
+                                    <a class="pagination__anchor"
+                                       href="index.php?page=product_category&category_id=<?php echo $category_id; ?>&pagenumber=<?php echo $page_num - 1; ?>&pricesort=<?php echo urlencode($priceSort); ?>">
+                                        <img src="./assets/images/icon/arrow-left.svg" alt="prev">
+                                    </a>
+                                </li>
+                            <?php endif; ?>
+
+                            <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                                <li class="pagination__item">
+                                    <a class="pagination__anchor <?php echo ($i === $page_num) ? 'active' : ''; ?>"
+                                       href="index.php?page=product_category&category_id=<?php echo $category_id; ?>&pagenumber=<?php echo $i; ?>&pricesort=<?php echo urlencode($priceSort); ?>">
+                                        <?php echo $i; ?>
+                                    </a>
+                                </li>
+                            <?php endfor; ?>
+
+                            <?php if ($page_num < $total_pages): ?>
+                                <li class="pagination__item">
+                                    <a class="pagination__anchor"
+                                       href="index.php?page=product_category&category_id=<?php echo $category_id; ?>&pagenumber=<?php echo $page_num + 1; ?>&pricesort=<?php echo urlencode($priceSort); ?>">
+                                        <img src="./assets/images/icon/icon-nextlink.svg" alt="next">
+                                    </a>
+                                </li>
+                            <?php endif; ?>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
