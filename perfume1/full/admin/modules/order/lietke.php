@@ -356,12 +356,6 @@ $query_order_list = mysqli_query($mysqli, $sql_order_list);
                             <?php } ?>
                         </ul>
                     <?php
-                    } elseif ($totalpage == 0) {
-                    ?>
-                        <div class="w-100 text-center">
-                            <p class="color-t-red">Không có đơn hàng nào cần xử lý !</p>
-                        </div>
-                    <?php
                     }
                     ?>
                 </div>

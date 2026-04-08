@@ -7,12 +7,12 @@ if (session_status() === PHP_SESSION_NONE) {
 $account_id = (int)($_SESSION['account_id'] ?? 0);
 
 if ($account_id <= 0) {
-    ?>
+?>
     <div class="my-account__content">
         <h2 class="my-account__title h3">Đơn hàng đang xử lý</h2>
         <p>Bạn cần đăng nhập để xem đơn hàng.</p>
     </div>
-    <?php
+<?php
     exit;
 }
 
@@ -21,19 +21,86 @@ if ($account_id <= 0) {
  * -------------------
  * Lấy các đơn CHƯA HOÀN THÀNH:
  * status = 0,1,2
+ * order_type = 1 (COD) hoặc 2 (MoMo) - ⏸️ VNPAY hidden
  * Sắp xếp đơn mới nhất lên trên
  */
+
+// Capture filter parameters
+$filter_date_from = isset($_GET['date_from']) ? trim($_GET['date_from']) : '';
+$filter_date_to   = isset($_GET['date_to']) ? trim($_GET['date_to']) : '';
+$filter_status    = isset($_GET['order_status']) ? trim($_GET['order_status']) : '';
+
+// Build WHERE conditions
+$where_conditions = [
+    "account_id = {$account_id}",
+    "order_status IN (0,1,2)",
+    "order_type IN (1, 2)"  // ⏸️ Only COD + MoMo
+];
+
+if ($filter_date_from !== '') {
+    $filter_date_from_safe = mysqli_real_escape_string($mysqli, $filter_date_from);
+    $where_conditions[] = "DATE(order_date) >= '{$filter_date_from_safe}'";
+}
+
+if ($filter_date_to !== '') {
+    $filter_date_to_safe = mysqli_real_escape_string($mysqli, $filter_date_to);
+    $where_conditions[] = "DATE(order_date) <= '{$filter_date_to_safe}'";
+}
+
+if ($filter_status !== '' && in_array($filter_status, ['0', '1', '2'], true)) {
+    $filter_status_int = (int)$filter_status;
+    $where_conditions[] = "order_status = {$filter_status_int}";
+}
+
+$where_sql = implode(' AND ', $where_conditions);
+
 $sql_order_list = "
     SELECT *
     FROM orders
-    WHERE account_id = {$account_id}
-      AND order_status IN (0,1,2)
+    WHERE {$where_sql}
     ORDER BY order_date DESC, order_id DESC
 ";
 $query_order_list = mysqli_query($mysqli, $sql_order_list);
 ?>
 <div class="my-account__content">
     <h2 class="my-account__title h3">Đơn hàng đang xử lý</h2>
+
+    <!-- Filter Section -->
+    <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 6px;">
+        <form method="GET" action="index.php" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;">
+            <input type="hidden" name="page" value="my_account">
+            <input type="hidden" name="tab" value="account_order">
+
+            <!-- Date From -->
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-size: 12px; font-weight: 500; color: #666;">Từ ngày:</label>
+                <input type="date" name="date_from" value="<?php echo htmlspecialchars($filter_date_from); ?>" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+            </div>
+
+            <!-- Date To -->
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-size: 12px; font-weight: 500; color: #666;">Đến ngày:</label>
+                <input type="date" name="date_to" value="<?php echo htmlspecialchars($filter_date_to); ?>" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+            </div>
+
+            <!-- Status Filter -->
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-size: 12px; font-weight: 500; color: #666;">Tình trạng:</label>
+                <select name="order_status" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                    <option value="">-- Tất cả --</option>
+                    <option value="0" <?php echo ($filter_status === '0') ? 'selected' : ''; ?>>Đang xử lý</option>
+                    <option value="1" <?php echo ($filter_status === '1') ? 'selected' : ''; ?>>Đang chuẩn bị hàng</option>
+                    <option value="2" <?php echo ($filter_status === '2') ? 'selected' : ''; ?>>Đang giao hàng</option>
+                </select>
+            </div>
+
+            <!-- Buttons -->
+            <div style="display: flex; gap: 8px;">
+                <button type="submit" style="padding: 8px 16px; background: #333; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500;">Lọc</button>
+                <a href="index.php?page=my_account&tab=account_order" style="padding: 8px 16px; background: #f0f0f0; color: #333; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; text-decoration: none; display: inline-block;">Reset</a>
+            </div>
+        </form>
+    </div>
 
     <div class="order__items">
         <?php if ($query_order_list && mysqli_num_rows($query_order_list) > 0) { ?>
@@ -97,8 +164,7 @@ $query_order_list = mysqli_query($mysqli, $sql_order_list);
                                         <img
                                             class="w-100 d-block object-fit-cover ratio-1"
                                             src="admin/modules/product/uploads/<?php echo htmlspecialchars($order_detail['product_image'], ENT_QUOTES, 'UTF-8'); ?>"
-                                            alt="product"
-                                        />
+                                            alt="product" />
                                     </div>
 
                                     <div class="flex-1">

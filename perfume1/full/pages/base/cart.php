@@ -21,7 +21,8 @@ if (!empty($_SESSION['checkout_errors'])) {
 
 /* ===== Helper ảnh ===== */
 if (!function_exists('img_url_phase1')) {
-    function img_url_phase1($file) {
+    function img_url_phase1($file)
+    {
         $file = trim((string)$file);
         if ($file === '') {
             return './assets/images/no-image.png';
@@ -33,20 +34,35 @@ if (!function_exists('img_url_phase1')) {
 
 <!-- Style tinh chỉnh footer & nút -->
 <style>
-  /* Nút trong footer: gọn theo nội dung (desktop), full trên mobile */
-  .cart__footer { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
-  .cart__footer .btn.cart__btn{
-    width: auto !important;
-    display: inline-flex; align-items: center; justify-content: center;
-    padding: 12px 22px;
-    border-radius: 8px;
-    min-width: 220px; /* có thể giảm xuống 180 nếu muốn gọn hơn */
-  }
-  /* Nếu muốn nút nhỏ hơn nữa: giảm min-width ở trên */
-  @media (max-width: 576px){
-    .cart__footer{ align-items: stretch; }
-    .cart__footer .btn.cart__btn{ width: 100% !important; }
-  }
+    /* Nút trong footer: gọn theo nội dung (desktop), full trên mobile */
+    .cart__footer {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+    }
+
+    .cart__footer .btn.cart__btn {
+        width: auto !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 22px;
+        border-radius: 8px;
+        min-width: 220px;
+        /* có thể giảm xuống 180 nếu muốn gọn hơn */
+    }
+
+    /* Nếu muốn nút nhỏ hơn nữa: giảm min-width ở trên */
+    @media (max-width: 576px) {
+        .cart__footer {
+            align-items: stretch;
+        }
+
+        .cart__footer .btn.cart__btn {
+            width: 100% !important;
+        }
+    }
 </style>
 
 <div id="toast_message"></div>
@@ -95,8 +111,8 @@ if (!function_exists('img_url_phase1')) {
                                 <div class="cart__image">
                                     <a href="index.php?page=product_detail&product_id=<?php echo $pid; ?>">
                                         <img class="w-100"
-                                             src="<?php echo htmlspecialchars(img_url_phase1($cart_item['product_image'] ?? '')); ?>"
-                                             alt="product" />
+                                            src="<?php echo htmlspecialchars(img_url_phase1($cart_item['product_image'] ?? '')); ?>"
+                                            alt="product" />
                                     </a>
                                 </div>
                                 <div class="cart__title">
@@ -111,7 +127,7 @@ if (!function_exists('img_url_phase1')) {
                                     <div class="cart__quantity--container d-flex align-center">
                                         <div class="select__number p-relative">
                                             <a href="pages/handle/addtocart.php?div=<?php echo $pid; ?>"
-                                               class="select__number--minus cursor-pointer p-absolute d-flex align-center justify-center">
+                                                class="select__number--minus cursor-pointer p-absolute d-flex align-center justify-center">
                                                 <img src="./assets/images/icon/minus.svg" alt="minus" />
                                             </a>
                                             <!-- NHẬP SỐ LƯỢNG BẰNG TAY -->
@@ -120,10 +136,9 @@ if (!function_exists('img_url_phase1')) {
                                                 min="0"
                                                 value="<?php echo $qtyLine; ?>"
                                                 class="select__number--value heading-6 w-100 h-100"
-                                                data-product-id="<?php echo $pid; ?>"
-                                            />
+                                                data-product-id="<?php echo $pid; ?>" />
                                             <a href="pages/handle/addtocart.php?sum=<?php echo $pid; ?>"
-                                               class="select__number--plus cursor-pointer p-absolute d-flex align-center justify-center">
+                                                class="select__number--plus cursor-pointer p-absolute d-flex align-center justify-center">
                                                 <img src="./assets/images/icon/plus.svg" alt="plus" />
                                             </a>
                                         </div>
@@ -146,8 +161,8 @@ if (!function_exists('img_url_phase1')) {
                                 <div class="cart__image opacity-50">
                                     <a href="index.php?page=product_detail&product_id=<?php echo $pid; ?>">
                                         <img class="w-100"
-                                             src="<?php echo htmlspecialchars(img_url_phase1($cart_item['product_image'] ?? '')); ?>"
-                                             alt="product" />
+                                            src="<?php echo htmlspecialchars(img_url_phase1($cart_item['product_image'] ?? '')); ?>"
+                                            alt="product" />
                                     </a>
                                 </div>
                                 <div class="cart__title">
@@ -160,7 +175,7 @@ if (!function_exists('img_url_phase1')) {
                                     <div class="cart__quantity--container d-flex align-center">
                                         <div class="select__number p-relative">
                                             <a href="pages/handle/addtocart.php?div=<?php echo $pid; ?>"
-                                               class="select__number--minus cursor-pointer p-absolute d-flex align-center justify-center">
+                                                class="select__number--minus cursor-pointer p-absolute d-flex align-center justify-center">
                                                 <img src="./assets/images/icon/minus.svg" alt="minus" />
                                             </a>
                                             <!-- NHẬP SỐ LƯỢNG BẰNG TAY -->
@@ -169,10 +184,9 @@ if (!function_exists('img_url_phase1')) {
                                                 min="0"
                                                 value="<?php echo $qtyLine; ?>"
                                                 class="select__number--value heading-6 w-100 h-100"
-                                                data-product-id="<?php echo $pid; ?>"
-                                            />
+                                                data-product-id="<?php echo $pid; ?>" />
                                             <a href="pages/handle/addtocart.php?sum=<?php echo $pid; ?>"
-                                               class="select__number--plus cursor-pointer p-absolute d-flex align-center justify-center">
+                                                class="select__number--plus cursor-pointer p-absolute d-flex align-center justify-center">
                                                 <img src="./assets/images/icon/plus.svg" alt="plus" />
                                             </a>
                                         </div>
@@ -194,11 +208,25 @@ if (!function_exists('img_url_phase1')) {
                 </div>
             </div>
             <div class="cart__footer w-100 h-100">
-                <div class="cart__footer--total h4">
-                    Tổng tiền: <?php echo number_format((float)$total) . ' ₫'; ?>
+                <!-- Invoice Section - Grid Layout -->
+                <div style="display: grid; grid-template-columns: 1fr auto; gap: 12px; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #ddd;">
+                    <span class="h6" style="margin: 0;">Tạm tính:</span>
+                    <span class="h6" style="margin: 0;"><?php echo number_format((float)$total); ?>₫</span>
                 </div>
-                <p class="cart__footer--context">
-                    Thuế và phí vận chuyển được tính khi thanh toán
+                <div style="display: grid; grid-template-columns: 1fr auto; gap: 12px; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #ddd;">
+                    <span class="h6" style="margin: 0; color: #e74c3c;">Giảm giá:</span>
+                    <span class="h6" style="margin: 0; color: #e74c3c;">0₫</span>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr auto; gap: 12px; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #ddd;">
+                    <span class="h6" style="margin: 0;">Phí vận chuyển:</span>
+                    <span class="h6" style="margin: 0;">Miễn phí</span>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; padding-bottom: 15px; border-bottom: 2px solid #333;">
+                    <h4 style="font-size: 16px; font-weight: 700; margin: 0;">Tổng tiền:</h4>
+                    <span style="font-size: 20px; font-weight: 700;"><?php echo number_format((float)$total); ?>₫</span>
+                </div>
+                <p class="cart__footer--context" style="margin-top: 12px;">
+                    Thuế được tính khi thanh toán
                 </p>
                 <?php
                 if (isset($_SESSION['account_email'])) {
@@ -233,6 +261,7 @@ if (!function_exists('img_url_phase1')) {
             duration: 3000,
         });
     }
+
     function showErrorMessage() {
         toast({
             title: "Error",
@@ -243,10 +272,10 @@ if (!function_exists('img_url_phase1')) {
     }
 
     // ====== CẬP NHẬT SỐ LƯỢNG ======
-    document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function() {
         var inputs = document.querySelectorAll(".select__number--value");
-        inputs.forEach(function (input) {
-            input.addEventListener("change", function () {
+        inputs.forEach(function(input) {
+            input.addEventListener("change", function() {
                 var pid = this.getAttribute("data-product-id");
                 var qty = parseInt(this.value, 10);
 

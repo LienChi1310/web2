@@ -132,6 +132,8 @@ $query_order = mysqli_query($mysqli, $sql_order);
                                     <div class="checkout__items">
                                         <?php
                                         while ($cart_item = mysqli_fetch_array($query_order_detail_list)) {
+                                            $price_after_sale = $cart_item['product_price'] - ($cart_item['product_price'] / 100 * $cart_item['product_sale']);
+                                            $item_total = $price_after_sale * $cart_item['product_quantity'];
                                         ?>
                                             <div class="checkout__item d-flex align-center">
                                                 <div class="checkout__image p-relative">
@@ -149,15 +151,21 @@ $query_order = mysqli_query($mysqli, $sql_order);
                                                     <h3 class="checkout__name">
                                                         <?php echo $cart_item['product_name'] ?>
                                                     </h3>
+                                                    <p style="font-size: 12px; color: #666; margin: 4px 0;">
+                                                        <?php echo $cart_item['product_quantity'] ?> × <?php echo number_format($price_after_sale) ?>₫
+                                                        <?php if ((float)$cart_item['product_sale'] > 0) { ?>
+                                                            (giảm <?php echo (int)$cart_item['product_sale'] ?>%)
+                                                        <?php } ?>
+                                                    </p>
                                                 </div>
 
                                                 <div class="checkout__price">
-                                                    <?php
-                                                    echo number_format(
-                                                        $cart_item['product_price']
-                                                            - ($cart_item['product_price'] / 100 * $cart_item['product_sale'])
-                                                    ) . ' ₫';
-                                                    ?>
+                                                    <div style="font-weight: 600;">
+                                                        <?php echo number_format($item_total) ?>₫
+                                                    </div>
+                                                    <p style="font-size: 11px; color: #999; margin-top: 4px;">
+                                                        (Giá gốc: <?php echo number_format($cart_item['product_price']) ?>₫)
+                                                    </p>
                                                 </div>
                                             </div>
                                         <?php
@@ -165,22 +173,47 @@ $query_order = mysqli_query($mysqli, $sql_order);
                                         ?>
                                     </div>
 
-                                    <table class="w-100 mg-t-20">
-                                        <tr class="table-row">
-                                            <td class="h6 table-col">Giảm giá</td>
-                                            <td class="h6 table-col text-right">0₫</td>
-                                        </tr>
-                                        <tr class="table-row">
-                                            <td class="h6 table-col">Phí vận chuyển</td>
-                                            <td class="h6 table-col text-right">Miễn phí</td>
-                                        </tr>
-                                    </table>
+                                    <!-- INVOICE SECTION -->
+                                    <?php
+                                    // Tính tổng tiền từ sản phẩm
+                                    $sql_detail_calc = "SELECT 
+                                        SUM((od.product_price - (od.product_price / 100 * od.product_sale)) * od.product_quantity) as subtotal,
+                                        SUM(od.product_price * od.product_quantity) as original_total,
+                                        SUM((od.product_price / 100 * od.product_sale) * od.product_quantity) as discount_amount
+                                        FROM order_detail od
+                                        WHERE od.order_code = '{$order_code}'";
+                                    $query_detail = mysqli_query($mysqli, $sql_detail_calc);
+                                    $detail_row = mysqli_fetch_array($query_detail);
+                                    $subtotal = (float)($detail_row['subtotal'] ?? 0);
+                                    $original_total = (float)($detail_row['original_total'] ?? 0);
+                                    $discount_amount = (float)($detail_row['discount_amount'] ?? 0);
+                                    ?>
+                                    <div style="margin-top: 30px; padding: 20px; background: #f9f9f9; border-radius: 8px;">
+                                        <h4 style="margin-bottom: 20px; font-weight: 600; font-size: 16px;">Chi tiết hóa đơn</h4>
 
-                                    <div class="checkout__bottom d-flex align-center space-between">
-                                        <h4 class="checkout__total">Tổng tiền:</h4>
-                                        <span class="checkout__total">
-                                            <?php echo number_format((float)$total) . '₫' ?>
-                                        </span>
+                                        <!-- Invoice Item -->
+                                        <div style="display: grid; grid-template-columns: 1fr auto; gap: 12px; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #ddd;">
+                                            <span style="font-size: 14px;">Tạm tính</span>
+                                            <span style="font-size: 14px; font-weight: 500;"><?php echo number_format($original_total) ?>₫</span>
+                                        </div>
+
+                                        <!-- Discount Item -->
+                                        <div style="display: grid; grid-template-columns: 1fr auto; gap: 12px; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #ddd;">
+                                            <span style="font-size: 14px; color: #e74c3c;">Giảm giá</span>
+                                            <span style="font-size: 14px; font-weight: 500; color: #e74c3c;">-<?php echo number_format($discount_amount) ?>₫</span>
+                                        </div>
+
+                                        <!-- Shipping Fee -->
+                                        <div style="display: grid; grid-template-columns: 1fr auto; gap: 12px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #333;">
+                                            <span style="font-size: 14px;">Phí vận chuyển</span>
+                                            <span style="font-size: 14px; font-weight: 500;">Miễn phí</span>
+                                        </div>
+
+                                        <!-- Total -->
+                                        <div style="display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center;">
+                                            <h4 style="font-size: 16px; font-weight: 700; margin: 0;">Tổng tiền:</h4>
+                                            <span style="font-size: 20px; font-weight: 700;"><?php echo number_format((float)$total) ?>₫</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
