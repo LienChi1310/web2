@@ -211,7 +211,154 @@ while ($row_product_detail = mysqli_fetch_array($query_product_detail)) {
             <div class="container">
                 <div class="tab-pane active">
                     <div class="product-detail__description">
-                        <?php echo $row_product_detail['product_description'] ?>
+                        <?php
+                        $desc = (string)($row_product_detail['product_description'] ?? '');
+                        $pairs = [];
+                        $seen = [];
+
+                        $canonicalLabels = [
+                            'tên sản phẩm' => 'Tên sản phẩm',
+                            'thương hiệu' => 'Thương hiệu',
+                            'xuất xứ' => 'Xuất xứ',
+                            'xuất sứ' => 'Xuất xứ',
+                            'dung tích' => 'Dung tích',
+                            'nồng độ' => 'Nồng độ',
+                            'nhóm hương' => 'Nhóm hương',
+                            'phong cách' => 'Phong cách',
+                            'hương đầu' => 'Hương đầu',
+                            'hương giữa' => 'Hương giữa',
+                            'hương cuối' => 'Hương cuối',
+                            'độ lưu hương' => 'Độ lưu hương',
+                            'độ tỏa hương' => 'Độ tỏa hương',
+                            'lưu hương' => 'Lưu hương',
+                            'thời điểm khuyên dùng' => 'Thời điểm khuyên dùng',
+                            'thời điểm thích hợp' => 'Thời điểm thích hợp',
+                            'giới tính' => 'Giới tính',
+                            'năm phát hành' => 'Năm phát hành',
+                            'promotion' => 'Promotion',
+                        ];
+
+                        $normalizeLabel = function ($label) {
+                            $label = trim((string)$label);
+                            $label = preg_replace('/\s+/u', ' ', $label);
+                            $label = trim($label, " \t\n\r\0\x0B:.-");
+                            return $label;
+                        };
+
+                        $isAcceptedLabel = function ($label) use ($canonicalLabels) {
+                            $raw = trim((string)$label);
+                            if ($raw === '') {
+                                return false;
+                            }
+
+                            $compact = preg_replace('/\s+/u', ' ', $raw);
+                            $wordCount = preg_match_all('/\S+/u', $compact, $m);
+                            if (mb_strlen($compact, 'UTF-8') > 40 || $wordCount > 5) {
+                                return false;
+                            }
+
+                            $key = mb_strtolower($compact, 'UTF-8');
+                            return isset($canonicalLabels[$key]);
+                        };
+
+                        $addPair = function ($label, $value) use (&$pairs, &$seen) {
+                            $label = trim((string)$label);
+                            $value = trim((string)$value);
+                            if ($label === '' || $value === '') {
+                                return;
+                            }
+
+                            $key = mb_strtolower($label, 'UTF-8');
+                            if (isset($seen[$key])) {
+                                return;
+                            }
+
+                            $seen[$key] = true;
+                            $pairs[] = [
+                                'label' => $label,
+                                'value' => $value,
+                            ];
+                        };
+
+                        // 1) Extract from HTML tables first.
+                        if (preg_match_all('/<tr[^>]*>(.*?)<\/tr>/is', $desc, $rowMatches)) {
+                            foreach ($rowMatches[1] as $rowHtml) {
+                                if (!preg_match_all('/<t[dh][^>]*>(.*?)<\/t[dh]>/is', $rowHtml, $cellMatches)) {
+                                    continue;
+                                }
+
+                                if (count($cellMatches[1]) < 2) {
+                                    continue;
+                                }
+
+                                    $label = html_entity_decode(strip_tags($cellMatches[1][0]), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                                $value = html_entity_decode(strip_tags($cellMatches[1][1]), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                                $addPair($label, $value);
+                            }
+                        }
+
+                        // 2) Extract from plain text or remaining HTML lines.
+                        $normalized = preg_replace('/<br\s*\/?\s*>/i', "\n", $desc);
+                        $normalized = preg_replace('/<li[^>]*>/i', "\n", $normalized);
+                        $normalized = preg_replace('/<\/li>/i', "\n", $normalized);
+                        $normalized = preg_replace('/<\/(tr|table|p|div|h1|h2|h3|h4|h5|h6|ul|ol)>/i', "\n", $normalized);
+                        $normalized = html_entity_decode(strip_tags($normalized), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                        $normalized = preg_replace('/\r\n?|\r/', "\n", $normalized);
+                        $normalized = preg_replace('/[ \t]+/', ' ', $normalized);
+                        $normalized = preg_replace('/\n{2,}/', "\n", $normalized);
+                        $normalized = trim($normalized);
+
+                        $lines = $normalized === '' ? [] : explode("\n", $normalized);
+                        foreach ($lines as $line) {
+                            $line = trim($line, " \t\n\r\0\x0B-•");
+                            if ($line === '') {
+                                continue;
+                            }
+
+                            $label = '';
+                            $value = '';
+
+                            if (preg_match('/^([^\t]{1,40})\t+(.+)$/u', $line, $tabParts)) {
+                                $label = trim($tabParts[1]);
+                                $value = trim($tabParts[2]);
+                            } elseif (preg_match('/^([^:]{1,40})\s*:\s*(.+)$/u', $line, $colonParts)) {
+                                $label = trim($colonParts[1]);
+                                $value = trim($colonParts[2]);
+                            } else {
+                                continue;
+                            }
+
+                            $label = $normalizeLabel($label);
+                            if (!$isAcceptedLabel($label)) {
+                                continue;
+                            }
+
+                            $labelKey = mb_strtolower($label, 'UTF-8');
+                            if (isset($canonicalLabels[$labelKey])) {
+                                $label = $canonicalLabels[$labelKey];
+                            }
+
+                            $addPair($label, $value);
+                        }
+
+                        if (!empty($pairs)) {
+                            echo '<div class="product-specs">';
+                            foreach ($pairs as $pair) {
+                                echo '<div class="product-specs__row">';
+                                echo '<span class="product-specs__label">' . htmlspecialchars($pair['label'], ENT_QUOTES, 'UTF-8') . ':</span>';
+                                echo '<span class="product-specs__value">' . htmlspecialchars($pair['value'], ENT_QUOTES, 'UTF-8') . '</span>';
+                                echo '</div>';
+                            }
+                            echo '</div>';
+                        } elseif ($normalized !== '') {
+                            $isMarketingText = preg_match('/cam kết chỉ bán hàng chính hãng|giá cả tốt nhất thị trường|giao hàng toàn quốc/iu', $normalized);
+                            if ($isMarketingText) {
+                                echo '<p>Thông tin chi tiết sản phẩm đang được cập nhật.</p>';
+                            } else {
+                                echo '<p>' . nl2br(htmlspecialchars($normalized, ENT_QUOTES, 'UTF-8')) . '</p>';
+                            }
+                        }
+                        ?>
                     </div>
                 </div>
                 <div class="tab-pane">

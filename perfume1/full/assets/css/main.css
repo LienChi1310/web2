@@ -2397,7 +2397,7 @@ input[type="range"]::-moz-range-thumb{
 
 .faq-tab .tab__content {
   padding: 37px 0px 60px 0px;
-  background-color: var(--color-gray-light);
+  background-color: var(--color-light) !important;
 }
 
 .tab-pane {
@@ -2634,4 +2634,101 @@ abbr {
   border: 1px solid #ccc;
   display: none; /* Ẩn cửa sổ phóng to ban đầu */
   border-radius: 50%;
+}
+
+/* bảng thông tin sp */
+.product-detail__description {
+margin: 16px 0;
+display: block;
+color: #1f2937;
+line-height: 1.45;
+font-size: 1.5rem;
+background-color: #fff;
+}
+
+.product-detail__description p,
+.product-detail__description li {
+margin: 0 0 4px;
+line-height: 1.45;
+}
+
+.product-specs {
+display: flex;
+flex-direction: column;
+gap: 8px;
+max-width: 980px;
+}
+
+.product-specs__row {
+display: grid;
+grid-template-columns: minmax(190px, 250px) 1fr;
+column-gap: 44px;
+align-items: start;
+}
+
+.product-specs__label {
+font-weight: 700;
+color: #111827;
+line-height: 1.35;
+}
+
+.product-specs__value {
+color: #1f2937;
+line-height: 1.35;
+}
+
+@media (max-width: 767px) {
+.product-specs__row {
+grid-template-columns: 1fr;
+row-gap: 2px;
+}
+}
+
+.product-detail__description h2,
+.product-detail__description h3,
+.product-detail__description h4 {
+margin: 18px 0 10px;
+color: #111827;
+line-height: 1.4;
+}
+.product-detail__description ul,
+.product-detail__description ol {
+margin: 10px 0 14px 20px;
+padding-left: 18px;
+list-style: disc;
+}
+
+.product-detail__description table {
+width: 100%;
+border-collapse: collapse;
+margin: 14px 0 18px;
+overflow: hidden;
+border-radius: 10px;
+background: #fff;
+box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+.product-detail__description th,
+.product-detail__description td {
+border: 1px solid #e5e7eb;
+padding: 10px 12px;
+vertical-align: top;
+text-align: left;
+line-height: 1.6;
+}
+
+.product-detail__description tr:nth-child(odd) {
+background: #f9fafb;
+}
+
+.product-detail__description img {
+max-width: 100%;
+height: auto;
+border-radius: 8px;
+}
+
+.product-detail__description a {
+color: #0f766e;
+text-decoration: underline;
+text-underline-offset: 2px;
+word-break: break-word;
 }

@@ -307,18 +307,10 @@ if ($isBuyNow && !empty($_SESSION['buynow'])) {
             </div>
             <div class="payment__item d-flex align-center">
               <input class="payment__radio" type="radio" name="order_type" id="payment_momo_qr" value="2" />
-              <img class="payment__icon" src="./assets/images/payment/qrcode.png" alt="QR CODE" style="width:62px;">
+              <img class="payment__icon" src="./assets/images/payment/icons8-money-48.png" alt="Chuyển khoản" style="width:62px;">
               <label class="payment__label w-100 h-100" for="payment_momo_qr">
-                <span class="d-block">QR CODE</span>
-                <span class="d-block">Thanh toán MOMO QRCODE</span>
-              </label>
-            </div>
-            <div class="payment__item d-flex align-center">
-              <input class="payment__radio" type="radio" name="order_type" id="payment_vnp" value="4" />
-              <img class="payment__icon" src="./assets/images/payment/vnpay.png" alt="VNPAY" style="width:62px;">
-              <label class="payment__label w-100 h-100" for="payment_vnp">
-                <span class="d-block">VNPAY</span>
-                <span class="d-block">Thanh toán chuyển khoản VNPAY</span>
+                <span class="d-block">Chuyển khoản</span>
+                <span class="d-block">Thanh toán chuyển khoản ngân hàng</span>
               </label>
             </div>
           </div>
@@ -384,7 +376,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function toggleBankInfo() {
     const checked = document.querySelector('input[name="order_type"]:checked');
     const value = checked ? checked.value : '1';
-    bankInfo.style.display = (value === '4') ? 'block' : 'none';
+    bankInfo.style.display = (value === '2') ? 'block' : 'none';
   }
 
   paymentRadios.forEach(function (radio) {
