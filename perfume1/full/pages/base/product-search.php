@@ -240,7 +240,7 @@ $build_search_url = static function (array $params) {
                                 $link_params['category_id'] = $cat_id;
                                 $link_params['pagenumber'] = 1;
                                 $href = $build_search_url($link_params);
-                                ?>
+                            ?>
                                 <a href="<?php echo $href; ?>" class="sidebar__item--label d-block <?php echo $active; ?>">
                                     <?php echo htmlspecialchars((string)$cat['category_name']); ?>
                                 </a>
@@ -293,7 +293,7 @@ $build_search_url = static function (array $params) {
                                     $link_params['brand_id'] = $brand_item_id;
                                     $link_params['pagenumber'] = 1;
                                     $href = $build_search_url($link_params);
-                                    ?>
+                                ?>
                                     <a href="<?php echo $href; ?>" class="custom-label product-detail__variant--item <?php echo $active; ?>">
                                         <?php echo htmlspecialchars((string)$brand['brand_name']); ?>
                                     </a>
@@ -311,7 +311,7 @@ $build_search_url = static function (array $params) {
                             <?php if ($show_price_tag) {
                                 $clear_price_params = $base_params;
                                 unset($clear_price_params['pricefrom'], $clear_price_params['priceto']);
-                                ?>
+                            ?>
                                 <a class="tag__item" href="<?php echo $build_search_url($clear_price_params); ?>">
                                     <div class="d-flex align-center">
                                         <div class="btn__tag d-flex align-center"><img class="icon-close" src="./assets/images/icon/icon-close.png" alt=""></div>
@@ -325,7 +325,7 @@ $build_search_url = static function (array $params) {
                             <?php if ($category_id > 0) {
                                 $clear_category_params = $base_params;
                                 unset($clear_category_params['category_id']);
-                                ?>
+                            ?>
                                 <a class="tag__item" href="<?php echo $build_search_url($clear_category_params); ?>">
                                     <div class="d-flex align-center">
                                         <div class="btn__tag d-flex align-center"><img class="icon-close" src="./assets/images/icon/icon-close.png" alt=""></div>
@@ -339,7 +339,7 @@ $build_search_url = static function (array $params) {
                             <?php if ($brand_id > 0) {
                                 $clear_brand_params = $base_params;
                                 unset($clear_brand_params['brand_id']);
-                                ?>
+                            ?>
                                 <a class="tag__item" href="<?php echo $build_search_url($clear_brand_params); ?>">
                                     <div class="d-flex align-center">
                                         <div class="btn__tag d-flex align-center"><img class="icon-close" src="./assets/images/icon/icon-close.png" alt=""></div>
@@ -357,7 +357,7 @@ $build_search_url = static function (array $params) {
                     <?php
                     if ($query_product_list && mysqli_num_rows($query_product_list) > 0) {
                         while ($row = mysqli_fetch_assoc($query_product_list)) {
-                            ?>
+                    ?>
                             <div class="col" style="--w: 9; --w-md: 4">
                                 <div class="product__card d-flex flex-column">
                                     <div class="product__image p-relative">
@@ -438,20 +438,20 @@ $build_search_url = static function (array $params) {
                         <div class="pagination">
                             <?php if ($total_pages > 1) {
                                 $page_params = $base_params;
-                                ?>
+                            ?>
                                 <ul class="pagination__items d-flex align-center justify-center">
                                     <?php
                                     if ($page_num > 1) {
                                         $prev_params = $page_params;
                                         $prev_params['pagenumber'] = $page_num - 1;
-                                        ?>
+                                    ?>
                                         <li class="pagination__item"><a class="d-flex align-center" href="<?php echo $build_search_url($prev_params); ?>"><img src="./assets/images/icon/arrow-left.svg" alt=""></a></li>
                                     <?php } ?>
 
                                     <?php for ($i = 1; $i <= $total_pages; $i++) {
                                         $num_params = $page_params;
                                         $num_params['pagenumber'] = $i;
-                                        ?>
+                                    ?>
                                         <li class="pagination__item">
                                             <a class="pagination__anchor <?php echo ($page_num === $i ? 'active' : ''); ?>" href="<?php echo $build_search_url($num_params); ?>"><?php echo $i; ?></a>
                                         </li>
@@ -461,7 +461,7 @@ $build_search_url = static function (array $params) {
                                     if ($page_num < $total_pages) {
                                         $next_params = $page_params;
                                         $next_params['pagenumber'] = $page_num + 1;
-                                        ?>
+                                    ?>
                                         <li class="pagination__item"><a class="d-flex align-center" href="<?php echo $build_search_url($next_params); ?>"><img src="./assets/images/icon/icon-nextlink.svg" alt=""></a></li>
                                     <?php } ?>
                                 </ul>
@@ -483,107 +483,107 @@ $build_search_url = static function (array $params) {
 </div>
 
 <script>
-(function () {
-    const DEF_MIN = <?php echo $DEFAULT_MIN; ?>;
-    const DEF_MAX = <?php echo $DEFAULT_MAX; ?>;
-    const minR = document.getElementById('minPrice');
-    const maxR = document.getElementById('maxPrice');
-    const minI = document.getElementById('price-from');
-    const maxI = document.getElementById('price-to');
-    const progress = document.querySelector('.slider .progress');
+    (function() {
+        const DEF_MIN = <?php echo $DEFAULT_MIN; ?>;
+        const DEF_MAX = <?php echo $DEFAULT_MAX; ?>;
+        const minR = document.getElementById('minPrice');
+        const maxR = document.getElementById('maxPrice');
+        const minI = document.getElementById('price-from');
+        const maxI = document.getElementById('price-to');
+        const progress = document.querySelector('.slider .progress');
 
-    function clamp(v) {
-        v = parseInt(v || 0, 10);
-        if (isNaN(v)) v = DEF_MIN;
-        return Math.max(DEF_MIN, Math.min(DEF_MAX, v));
-    }
-
-    function renderProgress() {
-        const left = ((clamp(minR.value) - DEF_MIN) / (DEF_MAX - DEF_MIN)) * 100;
-        const right = 100 - ((clamp(maxR.value) - DEF_MIN) / (DEF_MAX - DEF_MIN)) * 100;
-        if (progress) {
-            progress.style.left = left + '%';
-            progress.style.right = right + '%';
-        }
-    }
-
-    function syncFromRange() {
-        let a = clamp(minR.value);
-        let b = clamp(maxR.value);
-        if (a > b) {
-            const t = a;
-            a = b;
-            b = t;
-        }
-        minR.value = a;
-        maxR.value = b;
-        minI.value = a;
-        maxI.value = b;
-        renderProgress();
-    }
-
-    function syncFromInput() {
-        let a = clamp(minI.value);
-        let b = clamp(maxI.value);
-        if (a > b) {
-            const t = a;
-            a = b;
-            b = t;
-        }
-        minR.value = a;
-        maxR.value = b;
-        minI.value = a;
-        maxI.value = b;
-        renderProgress();
-    }
-
-    [minR, maxR].forEach(function (el) {
-        el.addEventListener('input', syncFromRange);
-    });
-    [minI, maxI].forEach(function (el) {
-        el.addEventListener('input', syncFromInput);
-    });
-    syncFromRange();
-
-    window.setUrlPrice = function () {
-        const p = new URLSearchParams(window.location.search);
-        p.set('page', 'search');
-
-        const keyword = <?php echo json_encode($keyword, JSON_UNESCAPED_UNICODE); ?>;
-        if (keyword) p.set('keyword', keyword);
-        else p.delete('keyword');
-
-        <?php if ($category_id > 0) { ?>
-        p.set('category_id', '<?php echo $category_id; ?>');
-        <?php } else { ?>
-        p.delete('category_id');
-        <?php } ?>
-
-        <?php if ($brand_id > 0) { ?>
-        p.set('brand_id', '<?php echo $brand_id; ?>');
-        <?php } else { ?>
-        p.delete('brand_id');
-        <?php } ?>
-
-        <?php if ($priceSort !== '') { ?>
-        p.set('pricesort', '<?php echo $priceSort; ?>');
-        <?php } else { ?>
-        p.delete('pricesort');
-        <?php } ?>
-
-        p.set('pagenumber', '1');
-
-        const a = clamp(minI.value);
-        const b = clamp(maxI.value);
-        if (a === DEF_MIN && b === DEF_MAX) {
-            p.delete('pricefrom');
-            p.delete('priceto');
-        } else {
-            p.set('pricefrom', String(a));
-            p.set('priceto', String(b));
+        function clamp(v) {
+            v = parseInt(v || 0, 10);
+            if (isNaN(v)) v = DEF_MIN;
+            return Math.max(DEF_MIN, Math.min(DEF_MAX, v));
         }
 
-        window.location.href = 'index.php?' + p.toString();
-    };
-})();
+        function renderProgress() {
+            const left = ((clamp(minR.value) - DEF_MIN) / (DEF_MAX - DEF_MIN)) * 100;
+            const right = 100 - ((clamp(maxR.value) - DEF_MIN) / (DEF_MAX - DEF_MIN)) * 100;
+            if (progress) {
+                progress.style.left = left + '%';
+                progress.style.right = right + '%';
+            }
+        }
+
+        function syncFromRange() {
+            let a = clamp(minR.value);
+            let b = clamp(maxR.value);
+            if (a > b) {
+                const t = a;
+                a = b;
+                b = t;
+            }
+            minR.value = a;
+            maxR.value = b;
+            minI.value = a;
+            maxI.value = b;
+            renderProgress();
+        }
+
+        function syncFromInput() {
+            let a = clamp(minI.value);
+            let b = clamp(maxI.value);
+            if (a > b) {
+                const t = a;
+                a = b;
+                b = t;
+            }
+            minR.value = a;
+            maxR.value = b;
+            minI.value = a;
+            maxI.value = b;
+            renderProgress();
+        }
+
+        [minR, maxR].forEach(function(el) {
+            el.addEventListener('input', syncFromRange);
+        });
+        [minI, maxI].forEach(function(el) {
+            el.addEventListener('input', syncFromInput);
+        });
+        syncFromRange();
+
+        window.setUrlPrice = function() {
+            const p = new URLSearchParams(window.location.search);
+            p.set('page', 'search');
+
+            const keyword = <?php echo json_encode($keyword, JSON_UNESCAPED_UNICODE); ?>;
+            if (keyword) p.set('keyword', keyword);
+            else p.delete('keyword');
+
+            <?php if ($category_id > 0) { ?>
+                p.set('category_id', '<?php echo $category_id; ?>');
+            <?php } else { ?>
+                p.delete('category_id');
+            <?php } ?>
+
+            <?php if ($brand_id > 0) { ?>
+                p.set('brand_id', '<?php echo $brand_id; ?>');
+            <?php } else { ?>
+                p.delete('brand_id');
+            <?php } ?>
+
+            <?php if ($priceSort !== '') { ?>
+                p.set('pricesort', '<?php echo $priceSort; ?>');
+            <?php } else { ?>
+                p.delete('pricesort');
+            <?php } ?>
+
+            p.set('pagenumber', '1');
+
+            const a = clamp(minI.value);
+            const b = clamp(maxI.value);
+            if (a === DEF_MIN && b === DEF_MAX) {
+                p.delete('pricefrom');
+                p.delete('priceto');
+            } else {
+                p.set('pricefrom', String(a));
+                p.set('priceto', String(b));
+            }
+
+            window.location.href = 'index.php?' + p.toString();
+        };
+    })();
 </script>

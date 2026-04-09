@@ -61,7 +61,7 @@ while ($row_product_detail = mysqli_fetch_array($query_product_detail)) {
                         <div class="product-detail__media">
                             <div class="media__items d-flex">
                                 <div class="media__item product-image-container w-100">
-                                    <img class="w-100" src="admin/modules/product/uploads/<?php echo $row_product_detail['product_image'] ?>" alt="image product" />
+                                    <img class="w-100" src="admin/modules/product/uploads/<?php echo $row_product_detail['product_image'] ?>" alt="image product" onerror="this.src='./assets/images/product/product-image.jpg'" />
                                     <div class="zoom-window"></div>
                                 </div>
                             </div>

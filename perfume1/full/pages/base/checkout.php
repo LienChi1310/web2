@@ -48,7 +48,7 @@ function effective_price(float $price, float $sale): float
 }
 function resolve_product_image(?string $raw): string
 {
-  if (!$raw) return '';
+  if (!$raw) return './assets/images/product/product-image.jpg';
   $raw = trim(str_replace('\\', '/', $raw));
   if (preg_match('~^https?://~i', $raw)) return $raw;
   return 'admin/modules/product/uploads/' . basename($raw);
@@ -447,7 +447,7 @@ if ($isBuyNow && !empty($_SESSION['buynow'])) {
                     <div class="checkout__image p-relative">
                       <div class="product-quantity align-center d-flex justify-center p-absolute"><span class="h6"><?= $qty ?></span></div>
                       <a href="index.php?page=product_detail&product_id=<?= $pid ?>">
-                        <img class="w-100 d-block object-fit-cover ratio-1" src="<?= e($imgUrl) ?>" alt="<?= $pname ?>">
+                        <img class="w-100 d-block object-fit-cover ratio-1" src="<?= e($imgUrl) ?>" alt="<?= $pname ?>" onerror="this.src='./assets/images/product/product-image.jpg'">
                       </a>
                     </div>
                     <div class="checkout__name flex-1">
@@ -677,13 +677,13 @@ if ($isBuyNow && !empty($_SESSION['buynow'])) {
       if (value === '5') {
         bankTransferForm.style.display = 'block';
         bankTransferForm.classList.remove('is-hidden');
-        requestAnimationFrame(function () {
+        requestAnimationFrame(function() {
           bankTransferForm.classList.add('is-visible');
         });
       } else {
         bankTransferForm.classList.remove('is-visible');
         bankTransferForm.classList.add('is-hidden');
-        window.setTimeout(function () {
+        window.setTimeout(function() {
           var currentChecked = document.querySelector('input[name="order_type"]:checked');
           if (!currentChecked || currentChecked.value !== '5') {
             bankTransferForm.style.display = 'none';

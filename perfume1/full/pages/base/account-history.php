@@ -167,7 +167,8 @@ $query_order_list = mysqli_query($mysqli, $sql_order_list);
                                     <img
                                         class="w-100 d-block object-fit-cover ratio-1"
                                         src="admin/modules/product/uploads/<?php echo $od['product_image'] ?>"
-                                        alt="product" />
+                                        alt="product"
+                                        onerror="this.src='./assets/images/product/product-image.jpg'" />
                                 </div>
 
                                 <div class="flex-1">

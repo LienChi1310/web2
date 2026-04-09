@@ -122,7 +122,7 @@ $query_product_edit = mysqli_query($mysqli, $sql_product_edit);
 
                             <div class="input-item form-group">
                                 <label class="d-block">Mô tả sản phẩm</label>
-                                <textarea name="product_description" id="product_description"><?php echo $row['product_description']; ?></textarea>
+                                <textarea class="d-block form-control" name="product_description" id="product_description" style="min-height: 300px; padding: 10px; font-family: inherit; font-size: 14px; border: 1px solid #ddd; border-radius: 4px;"><?php echo $row['product_description']; ?></textarea>
                             </div>
 
                             <div class="w-100" style="float: right;">
@@ -141,12 +141,14 @@ $query_product_edit = mysqli_query($mysqli, $sql_product_edit);
                     <div class="card-body">
                         <div class="card-content">
                             <div class="input-item form-group">
-                                <label>Image</label>
+                                <label>Hình ảnh</label>
                                 <div class="image-box w-100">
                                     <figure class="image-container p-relative">
-                                        <img src="modules/product/uploads/<?php echo $row['product_image']; ?>" id="chosen-image">
+                                        <img src="modules/product/uploads/<?php echo $row['product_image']; ?>" id="chosen-image" onerror="this.src='images/placeholder-image.webp'; hideDeleteImageBtn();">
+                                        <button type="button" id="deleteImageBtn" class="close-btn-image" onclick="deleteImage()"><i class="fa fa-times"></i></button>
                                         <figcaption id="file-name"></figcaption>
                                     </figure>
+                                    <input type="hidden" name="delete_image" id="delete_image" value="0">
                                     <input type="file" class="d-none" id="product_image" name="product_image" accept="image/*">
                                     <label class="label-for-image" for="product_image">
                                         <i class="fas fa-upload"></i> &nbsp; Chọn hình ảnh
@@ -242,11 +244,37 @@ $query_product_edit = mysqli_query($mysqli, $sql_product_edit);
     </div>
 </div>
 
-<div class="dialog__control">
-    <div class="control__box">
-        <a href="#" class="button__control btn__wanning" id="btnSpam">SPAM</a>
-        <a href="#" class="button__control btn__wanning" id="btnDelete">Xóa</a>
-    </div>
+<style>
+    .image-container {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+    }
+
+    .close-btn-image {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: rgba(220, 53, 69, 0.9);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        z-index: 10;
+        padding: 0;
+        transition: background 0.2s ease;
+    }
+
+    .close-btn-image:hover {
+        background: rgba(220, 53, 69, 1);
+    }
+</style>
 </div>
 
 <script>
@@ -359,6 +387,9 @@ if (isset($_GET['message']) && $_GET['message'] == 'success') {
     tinymce.init({
         selector: '#product_description',
         height: 300,
+        min_height: 300,
+        max_height: 800,
+        resize: true,
         menubar: 'edit view insert format tools',
         plugins: 'link lists image table code help paste',
         toolbar: 'formatselect | bold italic underline | bullist numlist | link image table | code | removeformat | undo redo',
@@ -388,16 +419,94 @@ if (isset($_GET['message']) && $_GET['message'] == 'success') {
 </script>
 
 <script>
+    // Delete Image Function
+    function deleteImage() {
+        if (confirm('Bạn chắc chắn muốn xóa hình ảnh này không?')) {
+            document.getElementById('delete_image').value = '1';
+            document.getElementById('chosen-image').src = 'images/placeholder-image.webp';
+            document.getElementById('file-name').textContent = '';
+            document.getElementById('product_image').value = '';
+            document.getElementById('deleteImageBtn').style.display = 'none';
+        }
+    }
+
+    // Hide delete button when image fails to load
+    function hideDeleteImageBtn() {
+        document.getElementById('deleteImageBtn').style.display = 'none';
+    }
+
+    // Show delete button when image exists or is uploaded
+    function checkImageExists() {
+        const img = document.getElementById('chosen-image');
+        const src = img.src;
+        if (src && !src.includes('text=No+Image') && !src.includes('undefined')) {
+            document.getElementById('deleteImageBtn').style.display = 'flex';
+        }
+    }
+    checkImageExists();
+
+    // Form Validation
+    const editForm = document.querySelector('form[method="POST"]');
+    if (editForm) {
+        editForm.addEventListener('submit', function(e) {
+            let isValid = true;
+            let errorMsg = [];
+
+            // Validate product name
+            const productName = document.querySelector('input[name="product_name"]');
+            if (!productName.value.trim()) {
+                isValid = false;
+                errorMsg.push('Tên sản phẩm không được để trống');
+            } else if (productName.value.trim().length < 3) {
+                isValid = false;
+                errorMsg.push('Tên sản phẩm phải có ít nhất 3 ký tự');
+            }
+
+            // Validate price import
+            const priceImport = document.querySelector('input[name="product_price_import"]');
+            if (!priceImport.value || parseInt(priceImport.value) <= 0) {
+                isValid = false;
+                errorMsg.push('Giá vốn phải lớn hơn 0');
+            }
+
+            // Validate profit percent
+            const profitPercent = document.querySelector('input[name="product_profit_percent"]');
+            if (profitPercent.value < 0 || profitPercent.value > 200) {
+                isValid = false;
+                errorMsg.push('% lợi nhuận phải từ 0 đến 200%');
+            }
+
+            // Validate sale
+            const sale = document.querySelector('input[name="product_sale"]');
+            if (sale.value < 0 || sale.value >= 100) {
+                isValid = false;
+                errorMsg.push('Sale phải từ 0 đến 99%');
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+                alert('Vui lòng sửa các lỗi sau:\n' + errorMsg.join('\n'));
+                return false;
+            }
+        });
+    }
+</script>
+
+<script>
     let uploadButton = document.getElementById("product_image");
     let chosenImage = document.getElementById("chosen-image");
     let fileName = document.getElementById("file-name");
+    let deleteImageBtn = document.getElementById("deleteImageBtn");
+    let deleteImageInput = document.getElementById("delete_image");
 
     uploadButton.onchange = () => {
         let reader = new FileReader();
         reader.readAsDataURL(uploadButton.files[0]);
         reader.onload = () => {
             chosenImage.setAttribute("src", reader.result);
+            deleteImageInput.value = '0'; // Reset delete flag when new image is selected
         };
         fileName.textContent = uploadButton.files[0].name;
+        deleteImageBtn.style.display = 'block';
     };
 </script>

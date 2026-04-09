@@ -12,7 +12,7 @@ if (!function_exists('img_url_phase1')) {
         $basePath = 'admin/modules/product/uploads/';
 
         // Ảnh fallback nếu không có ảnh
-        $fallback = 'assets/images/no-image.png';
+        $fallback = './assets/images/product/product-image.jpg';
 
         if (empty($filename)) {
             return $fallback;
@@ -81,8 +81,8 @@ if ($brand_id > 0) {
                                     $img = img_url_phase1($row['product_image'] ?? null);
                                     ?>
                                     <img class="w-100 h-100 object-fit-cover"
-                                         src="<?php echo htmlspecialchars($img); ?>"
-                                         alt="<?php echo htmlspecialchars($row['product_name']); ?>" />
+                                        src="<?php echo htmlspecialchars($img); ?>"
+                                        alt="<?php echo htmlspecialchars($row['product_name']); ?>" />
                                 </a>
                                 <?php if ((int)$row['product_sale'] > 0) { ?>
                                     <span class="product__sale h6 p-absolute">

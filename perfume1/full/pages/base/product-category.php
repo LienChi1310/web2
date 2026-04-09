@@ -12,7 +12,7 @@ function img_url_phase1($filename)
     $basePath = 'admin/modules/product/uploads/';
 
     // Ảnh fallback khi không có ảnh
-    $fallback = 'assets/images/no-image.png';
+    $fallback = './assets/images/product/product-image.jpg';
 
     if (empty($filename)) {
         return $fallback;
@@ -101,8 +101,8 @@ if ($category_id > 0) {
                                     $img = img_url_phase1($row['product_image'] ?? null);
                                     ?>
                                     <img class="w-100 h-100 object-fit-cover"
-                                         src="<?php echo htmlspecialchars($img); ?>"
-                                         alt="<?php echo htmlspecialchars($row['product_name']); ?>" />
+                                        src="<?php echo htmlspecialchars($img); ?>"
+                                        alt="<?php echo htmlspecialchars($row['product_name']); ?>" />
                                 </a>
                                 <?php if ((int)$row['product_sale'] > 0) { ?>
                                     <span class="product__sale h6 p-absolute">
@@ -191,7 +191,7 @@ if ($category_id > 0) {
                             <?php if ($page_num > 1): ?>
                                 <li class="pagination__item">
                                     <a class="pagination__anchor"
-                                       href="index.php?page=product_category&category_id=<?php echo $category_id; ?>&pagenumber=<?php echo $page_num - 1; ?>&pricesort=<?php echo urlencode($priceSort); ?>">
+                                        href="index.php?page=product_category&category_id=<?php echo $category_id; ?>&pagenumber=<?php echo $page_num - 1; ?>&pricesort=<?php echo urlencode($priceSort); ?>">
                                         <img src="./assets/images/icon/arrow-left.svg" alt="prev">
                                     </a>
                                 </li>
@@ -200,7 +200,7 @@ if ($category_id > 0) {
                             <?php for ($i = 1; $i <= $total_pages; $i++): ?>
                                 <li class="pagination__item">
                                     <a class="pagination__anchor <?php echo ($i === $page_num) ? 'active' : ''; ?>"
-                                       href="index.php?page=product_category&category_id=<?php echo $category_id; ?>&pagenumber=<?php echo $i; ?>&pricesort=<?php echo urlencode($priceSort); ?>">
+                                        href="index.php?page=product_category&category_id=<?php echo $category_id; ?>&pagenumber=<?php echo $i; ?>&pricesort=<?php echo urlencode($priceSort); ?>">
                                         <?php echo $i; ?>
                                     </a>
                                 </li>
@@ -209,7 +209,7 @@ if ($category_id > 0) {
                             <?php if ($page_num < $total_pages): ?>
                                 <li class="pagination__item">
                                     <a class="pagination__anchor"
-                                       href="index.php?page=product_category&category_id=<?php echo $category_id; ?>&pagenumber=<?php echo $page_num + 1; ?>&pricesort=<?php echo urlencode($priceSort); ?>">
+                                        href="index.php?page=product_category&category_id=<?php echo $category_id; ?>&pagenumber=<?php echo $page_num + 1; ?>&pricesort=<?php echo urlencode($priceSort); ?>">
                                         <img src="./assets/images/icon/icon-nextlink.svg" alt="next">
                                     </a>
                                 </li>

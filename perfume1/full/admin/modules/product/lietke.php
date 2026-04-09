@@ -248,7 +248,7 @@ function get_sort_url($column)
                                     <td style="text-align: center;"><?php echo $stt;
                                                                     $stt++; ?></td>
                                     <td><?php echo $row['product_id']; ?></td>
-                                    <td><img src="modules/product/uploads/<?php echo $row['product_image']; ?>" class="product_image" alt="image"></td>
+                                    <td><img src="modules/product/uploads/<?php echo $row['product_image']; ?>" class="product_image" alt="image" onerror="this.src='images/placeholder-image.webp'"></td>
                                     <td>
                                         <?php echo $row['product_name']; ?>
                                         <?php if ($is_low_stock) { ?>
@@ -493,11 +493,35 @@ function get_sort_url($column)
             duration: 0,
         });
     }
+
+    function showStockWarningToast(hidden, deleted) {
+        let message = '';
+        if (hidden > 0 && deleted > 0) {
+            message = `${deleted} sản phẩm đã xóa. ${hidden} sản phẩm có tồn kho hoặc đơn hàng liên quan đã được ẩn (không thể xóa hẳn).`;
+        } else if (hidden > 0) {
+            message = `${hidden} sản phẩm có tồn kho hoặc đơn hàng liên quan đã được ẩn (không thể xóa hẳn).`;
+        } else if (deleted > 0) {
+            message = `${deleted} sản phẩm đã xóa thành công.`;
+        }
+
+        toast({
+            title: "Thông báo",
+            message: message,
+            type: hidden > 0 ? "warning" : "success",
+            duration: 0,
+        });
+    }
 </script>
 
 <?php
-if (isset($_GET['message']) && $_GET['message'] == 'success') {
-    echo '<script>showSuccessToast();</script>';
+if (isset($_GET['message'])) {
+    if ($_GET['message'] == 'success') {
+        echo '<script>showSuccessToast();</script>';
+    } elseif ($_GET['message'] == 'success_with_stock') {
+        $hidden = isset($_GET['hidden']) ? (int)$_GET['hidden'] : 0;
+        $deleted = isset($_GET['deleted']) ? (int)$_GET['deleted'] : 0;
+        echo '<script>showStockWarningToast(' . $hidden . ', ' . $deleted . ');</script>';
+    }
 }
 ?>
 

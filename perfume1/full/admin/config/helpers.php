@@ -299,6 +299,35 @@ function product_has_related_data($mysqli, $product_id)
 }
 
 /**
+ * Get product stock quantity
+ */
+function get_product_stock($mysqli, $product_id)
+{
+    $product_id = (int)$product_id;
+    if ($product_id <= 0) {
+        return 0;
+    }
+
+    $sql_stock = "SELECT product_quantity FROM product WHERE product_id = '{$product_id}' LIMIT 1";
+    $query_stock = mysqli_query($mysqli, $sql_stock);
+
+    if ($query_stock && mysqli_num_rows($query_stock) > 0) {
+        $row = mysqli_fetch_assoc($query_stock);
+        return (int)($row['product_quantity'] ?? 0);
+    }
+
+    return 0;
+}
+
+/**
+ * Check if product has stock remaining
+ */
+function product_has_stock($mysqli, $product_id)
+{
+    return get_product_stock($mysqli, $product_id) > 0;
+}
+
+/**
  * Validate email
  */
 function is_valid_email($email)

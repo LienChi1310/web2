@@ -25,7 +25,7 @@ if (!function_exists('img_url_phase1')) {
     {
         $file = trim((string)$file);
         if ($file === '') {
-            return './assets/images/no-image.png';
+            return './assets/images/product/product-image.jpg';
         }
         return 'admin/modules/product/uploads/' . $file;
     }
@@ -346,7 +346,8 @@ if (!function_exists('img_url_phase1')) {
                                             <a href="index.php?page=product_detail&product_id=<?php echo $pid; ?>">
                                                 <img class="w-100"
                                                     src="<?php echo htmlspecialchars(img_url_phase1($cart_item['product_image'] ?? '')); ?>"
-                                                    alt="product" />
+                                                    alt="product"
+                                                    onerror="this.src='./assets/images/product/product-image.jpg'" />
                                             </a>
                                         </div>
                                         <div class="cart__title">

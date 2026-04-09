@@ -29,7 +29,7 @@ if (!function_exists('resolve_thankiu_image')) {
     {
         $raw = trim((string)$raw);
         if ($raw === '') {
-            return 'assets/images/no-image.png';
+            return './assets/images/product/product-image.jpg';
         }
 
         $raw = str_replace('\\', '/', $raw);
@@ -195,7 +195,8 @@ $display_code = $order_code > 0 ? 'ORD' . $order_code : '';
                                     <a href="index.php?page=product_detail&product_id=<?php echo $product_id; ?>">
                                         <img src="<?php echo e($product_image); ?>"
                                             alt="<?php echo e($product_name); ?>"
-                                            style="width:80px;height:80px;object-fit:cover;border-radius:8px;">
+                                            style="width:80px;height:80px;object-fit:cover;border-radius:8px;"
+                                            onerror="this.src='./assets/images/product/product-image.jpg'">
                                     </a>
                                 </div>
 

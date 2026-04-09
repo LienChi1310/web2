@@ -36,17 +36,17 @@ $query_product_list = mysqli_query($mysqli, $sql_product_list);
                             </a>
                             <span class="review-star-list d-flex">
                                 <?php
-                                $query_evaluate_rating = mysqli_query($mysqli, "SELECT * FROM evaluate WHERE product_id='".$row['product_id']."' AND evaluate_status = 1");
-                                
+                                $query_evaluate_rating = mysqli_query($mysqli, "SELECT * FROM evaluate WHERE product_id='" . $row['product_id'] . "' AND evaluate_status = 1");
+
                                 $rate1 = 0;
                                 $rate2 = 0;
                                 $rate3 = 0;
                                 $rate4 = 0;
                                 $rate5 = 0;
-                                
+
                                 while ($evaluate_rating = mysqli_fetch_array($query_evaluate_rating)) {
                                     $rate = $evaluate_rating['evaluate_rate'];
-                                
+
                                     if ($rate == 1) {
                                         $rate1++;
                                     } elseif ($rate == 2) {
@@ -59,7 +59,7 @@ $query_product_list = mysqli_query($mysqli, $sql_product_list);
                                         $rate5++;
                                     }
                                 }
-                                
+
                                 $total_rate = $rate1 + $rate2 + $rate3 + $rate4 + $rate5;
                                 if ($total_rate != 0) {
                                     $rate_avg =  ($rate1 * 1 + $rate2 * 2 + $rate3 * 3 + $rate4 * 4 + $rate5 * 5) / $total_rate;
@@ -67,7 +67,7 @@ $query_product_list = mysqli_query($mysqli, $sql_product_list);
                                 } else {
                                     $rate_avg = 0;
                                 }
-                                
+
                                 for ($i = 0; $i < 5; $i++) {
                                     if ($i < $rate_avg) {
                                 ?>
