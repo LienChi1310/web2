@@ -78,42 +78,12 @@ unset($_SESSION['register_old']);
                     </div>
 
                     <div class="input-box form-group">
-                        <label class="details form-label">Số nhà, tên đường</label>
-                        <input class="input-form" id="address_detail"
-                               type="text" name="address_detail"
-                               placeholder="Ví dụ: 123 Lê Lợi"
+                           <label class="details form-label">Địa chỉ</label>
+                           <input class="input-form" id="customer_address"
+                               type="text" name="customer_address"
+                               placeholder="Nhập địa chỉ của bạn"
                                required autocomplete="off"
-                               value="<?php echo htmlspecialchars($old['address_detail'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
-                        <span class="form-message"></span>
-                    </div>
-
-                    <div class="input-box form-group">
-                        <label class="details form-label">Phường/Xã</label>
-                        <input class="input-form" id="ward"
-                               type="text" name="ward"
-                               placeholder="Nhập phường/xã"
-                               required autocomplete="off"
-                               value="<?php echo htmlspecialchars($old['ward'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
-                        <span class="form-message"></span>
-                    </div>
-
-                    <div class="input-box form-group">
-                        <label class="details form-label">Quận/Huyện</label>
-                        <input class="input-form" id="district"
-                               type="text" name="district"
-                               placeholder="Nhập quận/huyện"
-                               required autocomplete="off"
-                               value="<?php echo htmlspecialchars($old['district'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
-                        <span class="form-message"></span>
-                    </div>
-
-                    <div class="input-box form-group">
-                        <label class="details form-label">Tỉnh/Thành phố</label>
-                        <input class="input-form" id="city"
-                               type="text" name="city"
-                               placeholder="Nhập tỉnh/thành phố"
-                               required autocomplete="off"
-                               value="<?php echo htmlspecialchars($old['city'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
+                               value="<?php echo htmlspecialchars($old['customer_address'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                         <span class="form-message"></span>
                     </div>
 
@@ -198,10 +168,7 @@ unset($_SESSION['register_old']);
         errorSelector: '.form-message',
         rules: [
             Validator.isRequired('#account_name', 'Vui lòng nhập tên đầy đủ của bạn'),
-            Validator.isRequired('#address_detail', 'Vui lòng nhập số nhà, tên đường'),
-            Validator.isRequired('#ward', 'Vui lòng nhập phường/xã'),
-            Validator.isRequired('#district', 'Vui lòng nhập quận/huyện'),
-            Validator.isRequired('#city', 'Vui lòng nhập tỉnh/thành phố'),
+            Validator.isRequired('#customer_address', 'Vui lòng nhập địa chỉ'),
             Validator.isRequired('#account_email', 'Vui lòng nhập email'),
             Validator.isEmail('#account_email', 'Định dạng email không hợp lệ'),
             Validator.isRequired('#account_phone', 'Vui lòng nhập số điện thoại'),

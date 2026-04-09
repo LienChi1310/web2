@@ -29,30 +29,21 @@ $password = trim($_POST['account_password'] ?? '');
 $password2 = trim($_POST['account_password_confirn'] ?? '');
 $gender = isset($_POST['account_gender']) ? (int) $_POST['account_gender'] : 0;
 
-$address_detail = trim($_POST['address_detail'] ?? '');
-$ward = trim($_POST['ward'] ?? '');
-$district = trim($_POST['district'] ?? '');
-$city = trim($_POST['city'] ?? '');
+$customer_address = trim($_POST['customer_address'] ?? '');
 
 $oldData = [
     'account_name' => $name,
     'account_email' => $email,
     'account_phone' => $phone,
     'account_gender' => $gender,
-    'address_detail' => $address_detail,
-    'ward' => $ward,
-    'district' => $district,
-    'city' => $city,
+    'customer_address' => $customer_address,
 ];
 
 if (
     $name === '' ||
     $email === '' ||
     $phone === '' ||
-    $address_detail === '' ||
-    $ward === '' ||
-    $district === '' ||
-    $city === '' ||
+    $customer_address === '' ||
     $password === '' ||
     $password2 === ''
 ) {
@@ -66,9 +57,6 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 if ($password !== $password2) {
     back_register('password_mismatch', $oldData);
 }
-
-$customer_address = $address_detail . ', ' . $ward . ', ' . $district . ', ' . $city;
-$oldData['customer_address'] = $customer_address;
 
 $stmt = $mysqli->prepare("SELECT account_id FROM account WHERE account_email = ? LIMIT 1");
 if (!$stmt) {
