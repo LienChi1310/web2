@@ -22,6 +22,12 @@ if (isset($mysqli) && $mysqli instanceof mysqli) {
   @$mysqli->set_charset('utf8mb4');
 }
 
+/* ===== Nhận selected_items từ cart page ===== */
+$selected_items_param = (string)($_POST['selected_items'] ?? '');
+if (empty($selected_items_param) && !empty($_GET['selected_items'])) {
+  $selected_items_param = (string)$_GET['selected_items'];
+}
+
 /* ===== Helpers ===== */
 function vnd($n)
 {
@@ -191,14 +197,30 @@ if (!$has_any) {
 /* ===== XÁC ĐỊNH DANH SÁCH SẢN PHẨM CHECKOUT ===== */
 /*
  * mode=buynow  => dùng session['buynow'] (chỉ 1 sản phẩm vừa bấm "Mua ngay")
+ * selected_items => lấy từ POST (checkout chỉ sản phẩm được chọn)
  * mặc định     => dùng session['cart'] (checkout toàn bộ giỏ hàng)
  */
 $isBuyNow = isset($_GET['mode']) && $_GET['mode'] === 'buynow';
 $checkout_items = [];
+$selected_product_ids = [];
+
+// Nếu có selected_items từ cart page (chỉ lấy sản phẩm được chọn)
+if (!empty($_POST['selected_items'])) {
+  $selected_product_ids = array_map('intval', explode(',', trim($_POST['selected_items'])));
+  $selected_product_ids = array_filter($selected_product_ids);
+}
 
 if ($isBuyNow && !empty($_SESSION['buynow'])) {
   $checkout_items = [$_SESSION['buynow']];
+} elseif (!empty($selected_product_ids) && !empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
+  // Chỉ lấy sản phẩm có product_id trong selected_product_ids
+  foreach ($_SESSION['cart'] as $cart_item) {
+    if (in_array((int)$cart_item['product_id'], $selected_product_ids)) {
+      $checkout_items[] = $cart_item;
+    }
+  }
 } else {
+  // Fallback: lấy toàn bộ giỏ hàng
   if (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
     $checkout_items = $_SESSION['cart'];
   }
@@ -209,6 +231,7 @@ if ($isBuyNow && !empty($_SESSION['buynow'])) {
   <div class="container">
     <form action="pages/handle/checkout.php" method="POST">
       <input type="hidden" name="mode" value="<?= $isBuyNow ? 'buynow' : 'cart'; ?>">
+      <input type="hidden" name="selected_items" value="<?= htmlspecialchars($selected_items_param, ENT_QUOTES, 'UTF-8'); ?>">>
 
       <div class="row">
         <div class="col" style="--w-md:7;">
@@ -350,23 +373,32 @@ if ($isBuyNow && !empty($_SESSION['buynow'])) {
         </div>
 
         <div class="row">
-          <div class="col" style="--w-md: 7">
+          <div class="col" style="width: 100% !important; box-sizing: border-box; padding-inline: var(--gutter);">
             <h4 class="h4 payment__heading">Phương thức thanh toán:</h4>
-            <div class="payment__items">
-              <div class="payment__item checked d-flex align-center">
-                <input class="payment__radio" type="radio" name="order_type" id="payment_default" value="1" checked />
-                <img class="payment__icon" src="./assets/images/icon/icon-shipcod.png" alt="Ship COD">
-                <label class="payment__label w-100 h-100" for="payment_default">
-                  <span class="d-block">COD</span>
-                  <span class="d-block">Thanh toán khi nhận hàng</span>
+            <div class="payment__items" style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px; width: 100%;">
+              <div style="display: flex; align-items: center; width: 100%; padding: 12px; border: 2px solid #333; border-radius: 8px; cursor: pointer; gap: 16px; background: #f9f9f9; transition: all 0.3s; min-height: 80px; box-sizing: border-box;" class="payment-item-option" data-value="1">
+                <input class="payment__radio" type="radio" name="order_type" id="payment_default" value="1" checked style="width: 20px; height: 20px; cursor: pointer; flex-shrink: 0;">
+                <img class="payment__icon" src="./assets/images/icon/icon-shipcod.png" alt="Ship COD" style="width: 48px; height: 48px; object-fit: contain; flex-shrink: 0;">
+                <label for="payment_default" style="flex: 1; cursor: pointer; display: flex; flex-direction: column; gap: 6px; margin: 0;">
+                  <span style="font-weight: 600; font-size: 16px; color: #333;">COD</span>
+                  <span style="font-size: 14px; color: #666; line-height: 1.4;">Thanh toán khi nhận hàng</span>
                 </label>
               </div>
-              <div class="payment__item d-flex align-center">
-                <input class="payment__radio" type="radio" name="order_type" id="payment_momo_qr" value="2" />
-                <img class="payment__icon" src="./assets/images/payment/qrcode.png" alt="QR CODE" style="width:62px;">
-                <label class="payment__label w-100 h-100" for="payment_momo_qr">
-                  <span class="d-block">QR CODE</span>
-                  <span class="d-block">Thanh toán MOMO QRCODE</span>
+              <div style="display: flex; align-items: center; width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; gap: 16px; background: transparent; transition: all 0.3s; min-height: 80px; box-sizing: border-box;" class="payment-item-option" data-value="2">
+                <input class="payment__radio" type="radio" name="order_type" id="payment_momo_qr" value="2" style="width: 20px; height: 20px; cursor: pointer; flex-shrink: 0;">
+                <img class="payment__icon" src="./assets/images/payment/qrcode.png" alt="QR CODE" style="width: 48px; height: 48px; object-fit: contain; flex-shrink: 0;">
+                <label for="payment_momo_qr" style="flex: 1; cursor: pointer; display: flex; flex-direction: column; gap: 6px; margin: 0;">
+                  <span style="font-weight: 600; font-size: 16px; color: #333;">QR CODE</span>
+                  <span style="font-size: 14px; color: #666; line-height: 1.4;">Thanh toán MOMO QRCODE</span>
+                </label>
+              </div>
+              <!-- Chuyển khoản Ngân Hàng -->
+              <div style="display: flex; align-items: center; width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; gap: 16px; background: transparent; transition: all 0.3s; min-height: 80px; box-sizing: border-box;" class="payment-item-option" data-value="5">
+                <input class="payment__radio" type="radio" name="order_type" id="payment_bank" value="5" style="width: 20px; height: 20px; cursor: pointer; flex-shrink: 0;">
+                <img class="payment__icon" src="./assets/images/payment/icons8-money-48.png" alt="Bank Transfer" style="width: 48px; height: 48px; object-fit: contain; flex-shrink: 0;">
+                <label for="payment_bank" style="flex: 1; cursor: pointer; display: flex; flex-direction: column; gap: 6px; margin: 0;">
+                  <span style="font-weight: 600; font-size: 16px; color: #333;">Chuyển Khoản</span>
+                  <span style="font-size: 14px; color: #666; line-height: 1.4;">Chuyển tiền từ tài khoản ngân hàng của bạn</span>
                 </label>
               </div>
               <!-- ⏸️ HIDDEN: VNPAY payment option (gateway paused) -->
@@ -380,13 +412,41 @@ if ($isBuyNow && !empty($_SESSION['buynow'])) {
               </div>
             </div>
 
-            <!-- ⏸️ HIDDEN: Bank info (VNPAY only) -->
-            <div id="bank-info" style="display:none; margin-top:12px; padding:12px; border:1px solid #ddd; border-radius:8px; background:#fafafa;">
-              <p><strong>Thông tin chuyển khoản:</strong></p>
-              <p>Ngân hàng: BIDV</p>
-              <p>Số tài khoản: 123456789</p>
-              <p>Chủ tài khoản: GUHA PERFUME</p>
-              <p>Nội dung: Thanh toán đơn hàng + SĐT</p>
+            <!-- Bank Transfer Form (Type 5) -->
+            <div id="bank-transfer-form" style="display:none; margin-top:16px; padding:0;">
+
+              <!-- Hint Box -->
+              <div style="margin-bottom:16px; padding:12px; border:1px solid #ffc107; border-radius:4px; background:#fffbea;">
+                <p style="margin:0; font-size:13px; color:#333;"><strong>Demo:</strong></p>
+                <p style="margin:8px 0 0 0; font-size:12px; color:#666; line-height:1.6;">
+                  • Ngân Hàng: <strong>BIDV</strong><br>
+                  • Số TK: <strong>123456789</strong><br>
+                  • Tên CT: <strong>ADMIN DEMO</strong>
+                </p>
+              </div>
+
+              <div style="margin-bottom:16px;">
+                <label for="bank_name" style="display:block; margin-bottom:8px; font-weight:500;">Chọn Ngân Hàng: <span style="color:red;">*</span></label>
+                <select name="bank_name" id="bank_name" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px; background:#fff;">
+                  <option value="">-- Chọn ngân hàng --</option>
+                  <option value="Vietinbank">Vietinbank (VTB)</option>
+                  <option value="BIDV">BIDV</option>
+                  <option value="Vietcombank">Vietcombank (VCB)</option>
+                </select>
+                <small id="bank_name_error" style="color:red; display:none; margin-top:4px; font-size:12px;"></small>
+              </div>
+
+              <div style="margin-bottom:16px;">
+                <label for="bank_account_number" style="display:block; margin-bottom:8px; font-weight:500;">Số Tài Khoản: <span style="color:red;">*</span></label>
+                <input type="text" name="bank_account_number" id="bank_account_number" placeholder="VD: 123456789" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px; background:#fff; box-sizing:border-box;">
+                <small id="bank_account_number_error" style="color:red; display:none; margin-top:4px; font-size:12px;"></small>
+              </div>
+
+              <div style="margin-bottom:0;">
+                <label for="bank_account_holder" style="display:block; margin-bottom:8px; font-weight:500;">Tên Chủ Tài Khoản: <span style="color:red;">*</span></label>
+                <input type="text" name="bank_account_holder" id="bank_account_holder" placeholder="VD: ADMIN DEMO" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px; background:#fff; box-sizing:border-box;">
+                <small id="bank_account_holder_error" style="color:red; display:none; margin-top:4px; font-size:12px;"></small>
+              </div>
             </div>
           </div>
         </div>
@@ -436,20 +496,145 @@ if ($isBuyNow && !empty($_SESSION['buynow'])) {
     });
     toggleAddressForm();
 
+    // ============ PAYMENT METHOD HANDLERS ============
     const paymentRadios = document.querySelectorAll('input[name="order_type"]');
     const bankInfo = document.getElementById('bank-info');
+    const bankTransferForm = document.getElementById('bank-transfer-form');
+    const paymentItemOptions = document.querySelectorAll('.payment-item-option');
 
-    function toggleBankInfo() {
+    function highlightPaymentItem() {
+      const checked = document.querySelector('input[name="order_type"]:checked');
+      if (!checked) return;
+
+      const selectedValue = checked.value;
+
+      paymentItemOptions.forEach(function(item) {
+        const itemValue = item.getAttribute('data-value');
+        if (itemValue === selectedValue) {
+          item.style.borderColor = '#333';
+          item.style.backgroundColor = '#f9f9f9';
+        } else {
+          item.style.borderColor = '#ddd';
+          item.style.backgroundColor = 'transparent';
+        }
+      });
+    }
+
+    function toggleBankTransferForm() {
       const checked = document.querySelector('input[name="order_type"]:checked');
       const value = checked ? checked.value : '1';
-      // ⏸️ TEMPORARILY: VNPAY option hidden (value === '4' never triggers)
-      // bankInfo.style.display = (value === '4') ? 'block' : 'none';
+      bankTransferForm.style.display = (value === '5') ? 'block' : 'none';
+
+      // Clear errors when toggling away
+      if (value !== '5') {
+        clearBankTransferErrors();
+      }
+    }
+
+    function clearBankTransferErrors() {
+      const errorElements = document.querySelectorAll('[id$="_error"]');
+      errorElements.forEach(el => {
+        if (el.id.startsWith('bank_')) {
+          el.style.display = 'none';
+          el.textContent = '';
+        }
+      });
+    }
+
+    function toggleBankInfo() {
       bankInfo.style.display = 'none'; // Always hidden
     }
 
+    function validateBankTransferForm() {
+      const checked = document.querySelector('input[name="order_type"]:checked');
+      const value = checked ? checked.value : '1';
+
+      // Only validate if bank transfer is selected
+      if (value !== '5') {
+        return true;
+      }
+
+      clearBankTransferErrors();
+      let isValid = true;
+
+      // Validate bank name
+      const bankName = document.getElementById('bank_name').value.trim();
+      if (bankName === '') {
+        document.getElementById('bank_name_error').textContent = 'Vui lòng chọn ngân hàng';
+        document.getElementById('bank_name_error').style.display = 'block';
+        isValid = false;
+      }
+
+      // Validate account number (only digits)
+      const accountNumber = document.getElementById('bank_account_number').value.trim();
+      if (accountNumber === '') {
+        document.getElementById('bank_account_number_error').textContent = 'Vui lòng nhập số tài khoản';
+        document.getElementById('bank_account_number_error').style.display = 'block';
+        isValid = false;
+      } else if (!/^\d+$/.test(accountNumber)) {
+        document.getElementById('bank_account_number_error').textContent = 'Số tài khoản chỉ được chứa chữ số';
+        document.getElementById('bank_account_number_error').style.display = 'block';
+        isValid = false;
+      } else if (accountNumber.length < 8 || accountNumber.length > 20) {
+        document.getElementById('bank_account_number_error').textContent = 'Số tài khoản từ 8-20 chữ số';
+        document.getElementById('bank_account_number_error').style.display = 'block';
+        isValid = false;
+      }
+
+      // Validate account holder (letters and spaces only)
+      const accountHolder = document.getElementById('bank_account_holder').value.trim();
+      if (accountHolder === '') {
+        document.getElementById('bank_account_holder_error').textContent = 'Vui lòng nhập tên chủ tài khoản';
+        document.getElementById('bank_account_holder_error').style.display = 'block';
+        isValid = false;
+      } else if (!/^[a-zA-Z\s]+$/.test(accountHolder)) {
+        document.getElementById('bank_account_holder_error').textContent = 'Tên chủ tài khoản chỉ chứa chữ cái và khoảng trắng';
+        document.getElementById('bank_account_holder_error').style.display = 'block';
+        isValid = false;
+      }
+
+      return isValid;
+    }
+
+    // ============ ATTACH EVENT LISTENERS ============
     paymentRadios.forEach(function(radio) {
-      radio.addEventListener('change', toggleBankInfo);
+      radio.addEventListener('change', function() {
+        toggleBankTransferForm();
+        toggleBankInfo();
+        highlightPaymentItem();
+      });
     });
+
+    // ============ CLICK ENTIRE PAYMENT ITEM TO SELECT ============
+    paymentItemOptions.forEach(function(item) {
+      item.addEventListener('click', function(e) {
+        // Prevent double-trigger if clicking radio directly
+        if (e.target.tagName === 'INPUT') return;
+
+        const radio = item.querySelector('input[type="radio"]');
+        if (radio) {
+          radio.checked = true;
+          radio.dispatchEvent(new Event('change', {
+            bubbles: true
+          }));
+        }
+      });
+    });
+
+    // ============ INIT: Highlight and show/hide forms on page load ============
+    highlightPaymentItem();
+    toggleBankTransferForm();
     toggleBankInfo();
+
+    // ============ FORM SUBMISSION ============
+    const checkoutForm = document.querySelector('form');
+    if (checkoutForm) {
+      checkoutForm.addEventListener('submit', function(e) {
+        if (!validateBankTransferForm()) {
+          e.preventDefault();
+          return false;
+        }
+      });
+    }
   });
 </script>

@@ -85,9 +85,47 @@ if (!in_array($address_type, ['default', 'new'], true)) {
     $errors[] = 'Loại địa chỉ không hợp lệ.';
 }
 
-if (!in_array($order_type, [1, 2], true)) {
-    // ⏸️ TEMPORARILY: Only COD (1) + MoMo (2) accepted (VNPAY paused)
+if (!in_array($order_type, [1, 2, 5], true)) {
+    // ⏸️ TEMPORARILY: Only COD (1) + MoMo (2) + Bank Transfer (5) accepted (VNPAY paused)
     $order_type = 1;  // fallback to COD
+}
+
+/* ======= Validate Bank Transfer Info (if Type 5) ======= */
+$bank_name = '';
+$bank_account_number = '';
+$bank_account_holder = '';
+
+if ($order_type == 5) {
+    $bank_name = trim($_POST['bank_name'] ?? '');
+    $bank_account_number = trim($_POST['bank_account_number'] ?? '');
+    $bank_account_holder = trim($_POST['bank_account_holder'] ?? '');
+
+    if ($bank_name === '') {
+        $errors[] = 'Vui lòng chọn ngân hàng.';
+    }
+    if ($bank_account_number === '') {
+        $errors[] = 'Vui lòng nhập số tài khoản.';
+    } elseif (!preg_match('/^\d+$/', $bank_account_number)) {
+        $errors[] = 'Số tài khoản chỉ được chứa chữ số.';
+    } elseif (strlen($bank_account_number) < 8 || strlen($bank_account_number) > 20) {
+        $errors[] = 'Số tài khoản từ 8-20 chữ số.';
+    }
+    if ($bank_account_holder === '') {
+        $errors[] = 'Vui lòng nhập tên chủ tài khoản.';
+    } elseif (!preg_match('/^[a-zA-Z\s]+$/', $bank_account_holder)) {
+        $errors[] = 'Tên chủ tài khoản chỉ chứa chữ cái và khoảng trắng.';
+    }
+
+    // Validate demo account
+    if (empty($errors)) {
+        $demo_bank = 'BIDV';
+        $demo_account = '123456789';
+        $demo_holder = 'ADMIN DEMO';
+
+        if ($bank_name !== $demo_bank || $bank_account_number !== $demo_account || strtoupper($bank_account_holder) !== strtoupper($demo_holder)) {
+            $errors[] = 'Thông tin tài khoản không đúng. Vui lòng kiểm tra lại.';
+        }
+    }
 }
 
 if (!empty($errors)) {
@@ -97,10 +135,26 @@ if (!empty($errors)) {
 }
 
 /* ======= Lấy danh sách sản phẩm từ SESSION ======= */
+$selected_items   = $_POST['selected_items'] ?? '';    // từ cart.php gửi qua (selected product IDs)
+$selected_product_ids = [];
+
+// Parse selected_items nếu có
+if (!empty($selected_items)) {
+    $selected_product_ids = array_map('intval', explode(',', trim($selected_items)));
+    $selected_product_ids = array_filter($selected_product_ids);
+}
+
 $sessionItems = [];
 
 if ($mode === 'buynow' && !empty($_SESSION['buynow'])) {
     $sessionItems[] = $_SESSION['buynow'];
+} elseif (!empty($selected_product_ids) && !empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
+    // Chỉ lấy sản phẩm được chọn từ cart
+    foreach ($_SESSION['cart'] as $cart_item) {
+        if (in_array((int)($cart_item['product_id'] ?? 0), $selected_product_ids)) {
+            $sessionItems[] = $cart_item;
+        }
+    }
 } elseif (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
     $sessionItems = $_SESSION['cart'];
 } else {
@@ -280,7 +334,10 @@ $is_paid = 0;
 if ($order_type == 1) {
     $payment_text = "COD – Thanh toán khi nhận hàng";
 } elseif ($order_type == 2) {
-    $payment_text = "Thanh toán MOMO (giả lập – chờ xác nhận)";
+    $payment_text = "Thanh toán MOMO";
+} elseif ($order_type == 5) {
+    $payment_text = "Chuyển khoản Ngân Hàng - Đã thanh toán";
+    $is_paid = 1; // Mark as paid for bank transfer
 } else {
     // ⏸️ TEMPORARILY: VNPAY gateway paused - default to generic message
     // elseif ($order_type == 4) {
@@ -302,13 +359,19 @@ $_SESSION['order_summary'] = [
     'is_paid'          => $is_paid,
     'total_amount'     => $total_amount,
     'items'            => $orderItems,
+    'bank_name'        => $bank_name,
+    'bank_account_number' => $bank_account_number,
+    'bank_account_holder' => $bank_account_holder,
 ];
 
-/* ======= Điều hướng: COD -> thankiu, MoMo/VNPAY -> màn fake ======= */
+/* ======= Điều hướng: COD -> thankiu, MoMo/Bank Transfer/VNPAY -> màn fake ======= */
 if ($order_type == 1) {
     header('Location: ../../index.php?page=thankiu&order_type=1');
 } elseif ($order_type == 2) {
     header('Location: ../../index.php?page=payment_momo_fake');
+} elseif ($order_type == 5) {
+    // Bank transfer - go directly to thank you (info already validated + stored in session)
+    header('Location: ../../index.php?page=thankiu&order_type=5');
 } else {
     // ⏸️ TEMPORARILY: VNPAY gateway redirect disabled
     // elseif ($order_type == 4) {
@@ -316,5 +379,5 @@ if ($order_type == 1) {
     // }
     header('Location: ../../index.php?page=thankiu');
 }
-exit;
+
 exit;

@@ -16,7 +16,7 @@ $orderSummary = $_SESSION['order_summary'] ?? null;
 
 if (!$orderSummary || !is_array($orderSummary)) {
     // Không có thông tin đơn -> quay về giỏ
-    ?>
+?>
     <section class="checkout pd-section">
         <div class="container">
             <div class="thankiu__box text-center">
@@ -26,7 +26,7 @@ if (!$orderSummary || !is_array($orderSummary)) {
             </div>
         </div>
     </section>
-    <?php
+<?php
     return;
 }
 
@@ -37,7 +37,8 @@ $customer_name = isset($_SESSION['account_name']) ? (string)$_SESSION['account_n
 $customer_name = $customer_name !== '' ? $customer_name : 'Quý khách';
 
 if (!function_exists('vnd_momo_fake')) {
-    function vnd_momo_fake($n) {
+    function vnd_momo_fake($n)
+    {
         return number_format((float)$n, 0, ',', '.') . ' ₫';
     }
 }
@@ -53,12 +54,28 @@ $qrPayloadArray = [
 
 $qrPayload = json_encode($qrPayloadArray, JSON_UNESCAPED_UNICODE);
 
-// ✅ Sinh QR vào bộ nhớ rồi encode base64 để nhúng vào <img>
-ob_start();
-// Tham số 3 = 0: mức sửa lỗi L (Low), 6: kích thước, 1: margin
-QRcode::png($qrPayload, null, 0, 6, 1);
-$imageString = ob_get_clean();
-$qrBase64    = base64_encode($imageString);
+// ✅ Sinh QR bằng hai cách: PHP local hoặc Online API
+$qrBase64    = null;
+$qr_url      = null;
+$qr_error    = null;
+
+// Cách 1: Thử dùng PHP GD Library (nếu enable)
+if (function_exists('imageCreate') && function_exists('imagecreatetruecolor')) {
+    try {
+        ob_start();
+        QRcode::png($qrPayload, null, 0, 6, 1);
+        $imageString = ob_get_clean();
+        $qrBase64    = base64_encode($imageString);
+    } catch (Exception $e) {
+        ob_end_clean();
+        $qrBase64 = null;
+    }
+}
+
+// Cách 2: Nếu PHP không có GD, dùng online QR API
+if (!$qrBase64) {
+    $qr_url = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($qrPayload);
+}
 ?>
 <style>
     .momo-page {
@@ -81,6 +98,7 @@ $qrBase64    = base64_encode($imageString);
         transition: transform 0.3s ease;
         /* align-items: stretch mặc định -> panel tím phủ full chiều cao */
     }
+
     .qr-momo-popup:hover {
         transform: scale(1.02);
     }
@@ -88,67 +106,80 @@ $qrBase64    = base64_encode($imageString);
     /* LEFT PANEL */
     .momo-left {
         flex: 1;
-        background: linear-gradient(135deg, #a22d86, #c43bb8); /* màu đặc trưng MoMo */
+        background: linear-gradient(135deg, #a22d86, #c43bb8);
+        /* màu đặc trưng MoMo */
         color: #fff;
         padding: 30px 24px;
         display: flex;
         flex-direction: column;
         gap: 12px;
     }
+
     .momo-left h2 {
         font-size: 26px;
         margin: 0 0 4px;
         font-weight: 700;
     }
+
     .momo-left .momo-brand {
         color: #ffe066;
     }
+
     .momo-left .momo-greeting {
         font-size: 15px;
         opacity: 0.95;
     }
+
     .momo-left p {
         margin: 6px 0;
         font-size: 15px;
         line-height: 1.5;
     }
+
     .momo-left .momo-order-info {
         margin-top: 12px;
         padding-top: 8px;
-        border-top: 1px solid rgba(255,255,255,0.25);
+        border-top: 1px solid rgba(255, 255, 255, 0.25);
         font-size: 14px;
     }
+
     .momo-row {
         display: flex;
         justify-content: space-between;
         margin-bottom: 6px;
         font-size: 14px;
     }
+
     .momo-label {
-        color: rgba(255,255,255,0.8);
+        color: rgba(255, 255, 255, 0.8);
     }
+
     .momo-value {
         font-weight: 600;
         color: #fff;
     }
+
     .momo-amount {
         margin: 14px 0 4px;
         padding: 10px 12px;
         border-radius: 12px;
-        background: rgba(255,255,255,0.12);
+        background: rgba(255, 255, 255, 0.12);
         display: flex;
         justify-content: space-between;
         align-items: center;
     }
+
     .momo-amount-label {
         font-size: 13px;
-        color: rgba(255,255,255,0.85);
+        color: rgba(255, 255, 255, 0.85);
     }
+
     .momo-amount-value {
         font-size: 18px;
         font-weight: 700;
         color: #fff;
     }
+
     .momo-countdown {
         font-size: 13px;
         color: #ffe4e6;
@@ -159,8 +190,10 @@ $qrBase64    = base64_encode($imageString);
     .momo-left-bottom {
         margin-top: auto;
         padding-top: 20px;
-        margin-bottom: 20px; /* căn đáy */
+        margin-bottom: 20px;
+        /* căn đáy */
     }
+
     .momo-left-bottom .momo-btn {
         width: 100%;
     }
@@ -175,25 +208,29 @@ $qrBase64    = base64_encode($imageString);
         flex-direction: column;
         align-items: center;
     }
+
     .momo-right .momo-logo {
         width: 80px;
         margin-bottom: 10px;
         transition: transform 0.2s ease;
     }
+
     .momo-right .momo-logo:hover {
         transform: scale(1.05);
     }
+
     .momo-right .qr-image {
         width: 280px;
         height: 280px;
         margin: 15px 0 8px;
         border-radius: 16px;
         border: 2px solid #e0e0e0;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
         transition: transform 0.2s ease;
         object-fit: contain;
         background: #fff;
     }
+
     .momo-right .qr-image:hover {
         transform: scale(1.03);
     }
@@ -214,6 +251,7 @@ $qrBase64    = base64_encode($imageString);
         display: flex;
         justify-content: center;
     }
+
     .momo-actions-row {
         display: flex;
         flex-direction: column;
@@ -231,27 +269,31 @@ $qrBase64    = base64_encode($imageString);
         text-align: center;
         text-decoration: none;
         transition: background 0.15s ease-in-out, color 0.15s ease-in-out,
-                    border-color 0.15s ease-in-out, opacity 0.15s ease-in-out;
+            border-color 0.15s ease-in-out, opacity 0.15s ease-in-out;
         display: inline-flex;
         align-items: center;
         justify-content: center;
     }
+
     /* Nút chính: hồng tím MoMo */
     .momo-btn-primary {
         background: #a22d86;
         color: #ffffff;
         border-color: #a22d86;
     }
+
     .momo-btn-primary:hover {
         background: #8d2774;
         border-color: #8d2774;
     }
+
     /* Nút hủy: nền trắng, viền nhạt */
     .momo-btn-secondary {
         background: #ffffff;
         color: #111827;
         border-color: #d1d5db;
     }
+
     .momo-btn-secondary:hover {
         background: #f9fafb;
     }
@@ -271,17 +313,22 @@ $qrBase64    = base64_encode($imageString);
             height: auto;
             flex-direction: column;
         }
-        .momo-left, .momo-right {
+
+        .momo-left,
+        .momo-right {
             padding: 20px 16px;
         }
+
         .momo-right .qr-image {
             width: 220px;
             height: 220px;
         }
+
         .momo-left-bottom {
             padding-top: 16px;
             margin-bottom: 16px;
         }
+
         .momo-right-bottom {
             margin-bottom: 16px;
         }
@@ -332,8 +379,8 @@ $qrBase64    = base64_encode($imageString);
                 <!-- Nút hủy nằm ở đáy panel trái -->
                 <div class="momo-left-bottom">
                     <button type="button"
-                            class="momo-btn momo-btn-secondary"
-                            onclick="window.location.href='index.php?page=cart';">
+                        class="momo-btn momo-btn-secondary"
+                        onclick="window.location.href='index.php?page=cart';">
                         Hủy thanh toán &amp; quay lại giỏ hàng
                     </button>
                 </div>
@@ -342,22 +389,57 @@ $qrBase64    = base64_encode($imageString);
             <!-- RIGHT -->
             <div class="momo-right">
                 <img src="assets/images/payment/momo.png"
-                     alt="MoMo"
-                     class="momo-logo"
-                     onerror="this.style.display='none'">
+                    alt="MoMo"
+                    class="momo-logo"
+                    onerror="this.style.display='none'">
 
-                <!-- ✅ QR sinh bằng PHP, không dùng ảnh tĩnh -->
-                <img
-                    src="data:image/png;base64,<?php echo $qrBase64; ?>"
-                    alt="MoMo QR"
-                    class="qr-image"
-                >
+                <!-- ✅ QR sinh bằng PHP GD hoặc Online API -->
+                <?php if ($qrBase64): ?>
+                    <!-- QR từ PHP GD Library -->
+                    <img
+                        src="data:image/png;base64,<?php echo $qrBase64; ?>"
+                        alt="MoMo QR"
+                        class="qr-image">
+                <?php elseif ($qr_url): ?>
+                    <!-- QR từ Online API (qr-server.com) -->
+                    <img
+                        src="<?php echo htmlspecialchars($qr_url); ?>"
+                        alt="MoMo QR"
+                        class="qr-image"
+                        style="background: white; padding: 10px; border-radius: 8px;">
+                <?php else: ?>
+                    <!-- Fallback: placeholder -->
+                    <div style="
+                        width: 300px;
+                        height: 300px;
+                        background: #f0f0f0;
+                        border: 2px dashed #ccc;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        border-radius: 8px;
+                        text-align: center;
+                        margin: 0 auto;
+                        color: #666;
+                        font-size: 14px;
+                        padding: 20px;
+                        box-sizing: border-box;
+                    ">
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 8px;">⚠️ QR Code Demo</div>
+                            <div>Không thể tạo QR code</div>
+                            <div style="margin-top: 8px; font-size: 12px; color: #999;">
+                                Nhấn nút bên dưới để tiếp tục test
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
 
                 <!-- Đáy bên phải: nút + footer (ngang hàng nút bên trái) -->
                 <div class="momo-right-bottom">
                     <div class="momo-actions">
                         <a href="pages/handle/payment_result.php?gateway=momo&status=success&order_code=<?php echo urlencode((string)$order_code); ?>"
-                           class="momo-btn momo-btn-primary">
+                            class="momo-btn momo-btn-primary">
                             Thanh toán thành công
                         </a>
                     </div>
@@ -369,7 +451,7 @@ $qrBase64    = base64_encode($imageString);
 
 <script>
     // Đếm ngược 15 phút (hiển thị là chính)
-    (function () {
+    (function() {
         var remain = 15 * 60; // 15 phút
         var el = document.getElementById('momo-timer');
         if (!el) return;

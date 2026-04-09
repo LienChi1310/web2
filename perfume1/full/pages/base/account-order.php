@@ -34,7 +34,7 @@ $filter_status    = isset($_GET['order_status']) ? trim($_GET['order_status']) :
 $where_conditions = [
     "account_id = {$account_id}",
     "order_status IN (0,1,2)",
-    "order_type IN (1, 2)"  // ⏸️ Only COD + MoMo
+    "order_type IN (1, 2, 5)"  // COD + MoMo + Bank Transfer
 ];
 
 if ($filter_date_from !== '') {

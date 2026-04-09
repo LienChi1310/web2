@@ -50,15 +50,16 @@ if ($status === 'success') {
     // MoMo only
     $order_type = 2;
 
+    // ⏸️ Cập nhật order_type (không thay đổi status)
+    // Status vẫn giữ nguyên 0 (Đang xử lý) cho đến khi admin xác nhận & chuẩn bị
     $stmt = $mysqli->prepare("
         UPDATE orders
-           SET order_status = 1,        -- 1 = đã thanh toán
-               order_type   = ?
-         WHERE order_code   = ?
+           SET order_type = ?
+         WHERE order_code = ?
          LIMIT 1
     ");
     if ($stmt) {
-        $stmt->bind_param('is', $order_type, $order_code);
+        $stmt->bind_param('ii', $order_type, $order_code);
         $stmt->execute();
         $stmt->close();
     }

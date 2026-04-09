@@ -11,19 +11,22 @@ error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED);
 
 // Helper format tiền
 if (!function_exists('vnd')) {
-    function vnd($n) {
+    function vnd($n)
+    {
         return number_format((float)$n, 0, ',', '.') . ' ₫';
     }
 }
 
 if (!function_exists('e')) {
-    function e($v) {
+    function e($v)
+    {
         return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
     }
 }
 
 if (!function_exists('resolve_thankiu_image')) {
-    function resolve_thankiu_image($raw) {
+    function resolve_thankiu_image($raw)
+    {
         $raw = trim((string)$raw);
         if ($raw === '') {
             return 'assets/images/no-image.png';
@@ -66,9 +69,13 @@ if ($orderSummary && is_array($orderSummary)) {
     $delivery_addr   = (string)($orderSummary['delivery_address'] ?? '');
     $delivery_note   = (string)($orderSummary['delivery_note'] ?? '');
     $payment_method  = (string)($orderSummary['payment_method'] ?? '');
+    $order_type      = (int)($orderSummary['order_type'] ?? 0);
     $is_paid         = (int)($orderSummary['is_paid'] ?? 0);
     $total_amount    = (float)($orderSummary['total_amount'] ?? 0);
     $items           = (array)($orderSummary['items'] ?? []);
+    $bank_name       = (string)($orderSummary['bank_name'] ?? '');
+    $bank_account_number = (string)($orderSummary['bank_account_number'] ?? '');
+    $bank_account_holder = (string)($orderSummary['bank_account_holder'] ?? '');
 } else {
     $order_code = 0;
     $delivery_name = '';
@@ -76,9 +83,13 @@ if ($orderSummary && is_array($orderSummary)) {
     $delivery_addr = '';
     $delivery_note = '';
     $payment_method = '';
+    $order_type = 0;
     $is_paid = 0;
     $total_amount = 0;
     $items = [];
+    $bank_name = '';
+    $bank_account_number = '';
+    $bank_account_holder = '';
 }
 
 // Chuẩn bị mã hiển thị
@@ -149,31 +160,42 @@ $display_code = $order_code > 0 ? 'ORD' . $order_code : '';
                     </div>
                 </div>
 
+                <!-- Bank Transfer Info (if Type 5) -->
+                <?php if ($order_type == 5 && !empty($bank_name)): ?>
+                    <div style="margin-top: 24px; padding:16px; border:1px solid #e5e7eb; border-radius:10px; background:#f0f8ff;">
+                        <h3 class="h4" style="margin-bottom:12px; color:#0066cc;">✓ Thông tin chuyển khoản đã nhận</h3>
+                        <p><strong>Ngân Hàng:</strong> <?php echo e($bank_name); ?></p>
+                        <p><strong>Số Tài Khoản:</strong> <span style="font-family: monospace; font-weight: 600;"><?php echo e($bank_account_number); ?></span></p>
+                        <p><strong>Tên Chủ Tài Khoản:</strong> <?php echo e($bank_account_holder); ?></p>
+                        <p style="margin-top:12px; font-size:13px; color:#28a745; font-weight: 600;">✓ Thanh toán thành công</p>
+                    </div>
+                <?php endif; ?>
+
                 <div style="margin-top: 24px; padding:16px; border:1px solid #e5e7eb; border-radius:10px;">
                     <h3 class="h4" style="margin-bottom:16px;">Tóm tắt sản phẩm</h3>
 
                     <?php if (!empty($items)): ?>
                         <?php foreach ($items as $item): ?>
                             <?php
-                                $product_id = (int)($item['product_id'] ?? 0);
-                                $product_name = (string)($item['product_name'] ?? '');
-                                $product_qty = (int)($item['product_quantity'] ?? 0);
-                                $product_price = (float)($item['product_price'] ?? 0);
-                                $product_sale = (float)($item['product_sale'] ?? 0);
-                                $product_image = resolve_thankiu_image($item['product_image'] ?? '');
+                            $product_id = (int)($item['product_id'] ?? 0);
+                            $product_name = (string)($item['product_name'] ?? '');
+                            $product_qty = (int)($item['product_quantity'] ?? 0);
+                            $product_price = (float)($item['product_price'] ?? 0);
+                            $product_sale = (float)($item['product_sale'] ?? 0);
+                            $product_image = resolve_thankiu_image($item['product_image'] ?? '');
 
-                                $final_price = $product_price - ($product_price * $product_sale / 100);
-                                if ($final_price < 0) {
-                                    $final_price = 0;
-                                }
-                                $line_total = $final_price * $product_qty;
+                            $final_price = $product_price - ($product_price * $product_sale / 100);
+                            if ($final_price < 0) {
+                                $final_price = 0;
+                            }
+                            $line_total = $final_price * $product_qty;
                             ?>
                             <div class="d-flex align-center" style="padding:12px 0;border-bottom:1px solid #f1f1f1;gap:16px;">
                                 <div style="width:80px;min-width:80px;">
                                     <a href="index.php?page=product_detail&product_id=<?php echo $product_id; ?>">
                                         <img src="<?php echo e($product_image); ?>"
-                                             alt="<?php echo e($product_name); ?>"
-                                             style="width:80px;height:80px;object-fit:cover;border-radius:8px;">
+                                            alt="<?php echo e($product_name); ?>"
+                                            style="width:80px;height:80px;object-fit:cover;border-radius:8px;">
                                     </a>
                                 </div>
 
@@ -213,8 +235,32 @@ $display_code = $order_code > 0 ? 'ORD' . $order_code : '';
     </section>
 
     <?php
+    // Xóa chỉ những sản phẩm đã thanh toán khỏi giỏ hàng
+    if (!empty($_SESSION['order_summary']['items']) && !empty($_SESSION['cart'])) {
+        $paid_items = $_SESSION['order_summary']['items'];
+        $paid_product_ids = array_map(function ($item) {
+            return (int)$item['product_id'];
+        }, $paid_items);
+
+        // Lọc lại giỏ hàng, chỉ giữ những sản phẩm KHÔNG được thanh toán
+        $remaining_items = [];
+        foreach ($_SESSION['cart'] as $cart_item) {
+            if (!in_array((int)$cart_item['product_id'], $paid_product_ids)) {
+                $remaining_items[] = $cart_item;
+            }
+        }
+
+        // Cập nhật hoặc xóa giỏ hàng
+        if (!empty($remaining_items)) {
+            $_SESSION['cart'] = $remaining_items; // Còn sản phẩm chưa thanh toán
+        } else {
+            unset($_SESSION['cart']); // Xóa giỏ hàng nếu toàn bộ đã thanh toán
+        }
+    } else {
+        unset($_SESSION['cart']); // Xóa nếu không có thông tin order
+    }
+
     unset($_SESSION['order_summary']);
-    unset($_SESSION['cart']);
     ?>
 
 <?php else: ?>

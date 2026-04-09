@@ -82,11 +82,13 @@ if ($order_search !== '') {
 }
 
 // ⏸️ Filter: Bỏ VNPAY + filter theo loại đơn hàng
-$where[] = "orders.order_type IN (1, 2)"; // COD + MoMo QR only
+$where[] = "orders.order_type IN (1, 2, 5)"; // COD + MoMo QR + Bank Transfer
 if ($order_type === '1') {  // Filter: COD only
     $where[] = "orders.order_type = 1";
 } elseif ($order_type === '2') {  // Filter: MoMo QR only
     $where[] = "orders.order_type = 2";
+} elseif ($order_type === '5') {  // Filter: Bank Transfer only
+    $where[] = "orders.order_type = 5";
 }
 
 $where_sql = implode(' AND ', $where);
@@ -196,6 +198,7 @@ $query_order_list = mysqli_query($mysqli, $sql_order_list);
                 <option value="">-- Tất cả --</option>
                 <option value="1" <?php echo (isset($_GET['order_type']) && $_GET['order_type'] === '1') ? 'selected' : ''; ?>>COD (Thanh toán khi nhận)</option>
                 <option value="2" <?php echo (isset($_GET['order_type']) && $_GET['order_type'] === '2') ? 'selected' : ''; ?>>MoMo QR</option>
+                <option value="5" <?php echo (isset($_GET['order_type']) && $_GET['order_type'] === '5') ? 'selected' : ''; ?>>Chuyển khoản Ngân Hàng</option>
             </select>
 
             <div style="flex: 1; text-align: right;">
