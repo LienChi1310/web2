@@ -75,9 +75,6 @@ if (isset($_GET['action'], $_GET['query'])) {
   <!-- main css -->
   <link rel="stylesheet" href="css/vertical-layout-light/style.css">
 
-  <!-- autocomplete -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.min.css">
-
   <style>
     #toast,
     #toast * {
@@ -93,7 +90,6 @@ if (isset($_GET['action'], $_GET['query'])) {
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tinymce@6/tinymce.min.js"></script>
   <script src="js/validator.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.jquery.min.js"></script>
 </head>
 
 <body>

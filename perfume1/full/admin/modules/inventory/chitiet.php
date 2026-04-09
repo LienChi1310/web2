@@ -13,6 +13,7 @@ $row_inventory = $query_inventory ? mysqli_fetch_assoc($query_inventory) : null;
 $sql_detail = "
     SELECT 
         d.*,
+        p.product_id,
         p.product_name,
         p.product_quantity AS current_stock
     FROM inventory_detail d
@@ -58,6 +59,7 @@ $query_detail = mysqli_query($mysqli, $sql_detail);
                             <thead>
                                 <tr>
                                     <th>STT</th>
+                                    <th>Mã SP</th>
                                     <th>Sản phẩm</th>
                                     <th>Số lượng nhập</th>
                                     <th>Giá nhập</th>
@@ -77,6 +79,7 @@ $query_detail = mysqli_query($mysqli, $sql_detail);
                                 ?>
                                         <tr>
                                             <td><?php echo $i; ?></td>
+                                            <td><strong>#<?php echo $row['product_id']; ?></strong></td>
                                             <td><?php echo htmlspecialchars($row['product_name']); ?></td>
                                             <td><?php echo (int)$row['quantity']; ?></td>
                                             <td><?php echo number_format((int)$row['price_import'], 0, ',', '.'); ?> đ</td>
@@ -88,7 +91,7 @@ $query_detail = mysqli_query($mysqli, $sql_detail);
                                 } else {
                                     ?>
                                     <tr>
-                                        <td colspan="6" class="text-center">Phiếu nhập chưa có sản phẩm.</td>
+                                        <td colspan="7" class="text-center">Phiếu nhập chưa có sản phẩm.</td>
                                     </tr>
                                 <?php } ?>
                             </tbody>
@@ -108,14 +111,11 @@ $query_detail = mysqli_query($mysqli, $sql_detail);
                                 Sửa phiếu nhập
                             </a>
 
-                            <form action="modules/inventory/xuly.php?inventory_id=<?php echo $row_inventory['inventory_id']; ?>"
-                                method="POST"
-                                onsubmit="return confirm('Xác nhận hoàn thành phiếu nhập? Hệ thống sẽ cộng tồn kho và cập nhật giá vốn bình quân.');"
-                                style="display:inline-block;">
-                                <button type="submit" name="inventory_complete" class="btn btn-success btn-sm">
-                                    Hoàn thành phiếu nhập
-                                </button>
-                            </form>
+                            <a href="modules/inventory/xuly.php?action=complete&inventory_id=<?php echo $row_inventory['inventory_id']; ?>"
+                                class="btn btn-success btn-sm"
+                                onclick="return confirm('Xác nhận hoàn thành phiếu nhập? Hệ thống sẽ cộng tồn kho và cập nhật giá vốn bình quân.');">
+                                Hoàn thành phiếu nhập
+                            </a>
 
                             <a href="modules/inventory/xuly.php?action=cancel&inventory_id=<?php echo $row_inventory['inventory_id']; ?>"
                                 class="btn btn-danger btn-sm"
