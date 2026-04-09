@@ -23,6 +23,8 @@ if (isset($mysqli) && $mysqli instanceof mysqli) {
     @$mysqli->set_charset('utf8mb4');
 }
 
+require_once __DIR__ . '/cart-session.php';
+
 // Biến lưu thông báo lỗi để hiển thị trên form
 $login_error = '';
 
@@ -84,6 +86,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
                 $_SESSION['account_email'] = (string)$user['account_email'];
                 $_SESSION['account_name']  = (string)($user['account_name']  ?? '');
                 $_SESSION['account_phone'] = (string)($user['account_phone'] ?? '');
+
+                cart_session_activate_owner((int)$user['account_id']);
+                unset($_SESSION['buynow']);
+                session_regenerate_id(true);
 
                 // Người mua → về Trang chủ (Phase3 cũng ok cho TC5)
                 header('Location: index.php?page=home&message=success');

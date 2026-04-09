@@ -48,20 +48,10 @@ function effective_price(float $price, float $sale): float
 }
 function resolve_product_image(?string $raw): string
 {
-  if (!$raw) return '/assets/images/no-image.png';
+  if (!$raw) return '';
   $raw = trim(str_replace('\\', '/', $raw));
   if (preg_match('~^https?://~i', $raw)) return $raw;
-  $file = basename($raw);
-  $candidates = [
-    '/admin/modules/product/uploads/' . $file,
-    '/assets/images/products/' . $file,
-    '/' . ltrim($raw, '/'),
-  ];
-  $doc = rtrim($_SERVER['DOCUMENT_ROOT'] ?? '', '/');
-  foreach ($candidates as $u) {
-    if ($doc && file_exists($doc . $u)) return $u;
-  }
-  return '/assets/images/no-image.png';
+  return 'admin/modules/product/uploads/' . basename($raw);
 }
 
 /* ===== Prefill shipping info ===== */
@@ -227,11 +217,135 @@ if ($isBuyNow && !empty($_SESSION['buynow'])) {
 }
 ?>
 <!-- start checkout -->
+<style>
+  .payment-item-option {
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease, background-color 0.25s ease;
+  }
+
+  .payment-item-option::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 4px;
+    background: var(--payment-accent, #d1d5db);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.25s ease;
+  }
+
+  .payment-item-option::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 6px;
+    background: transparent;
+    transition: background-color 0.25s ease;
+  }
+
+  .payment-item-option--active {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+  }
+
+  .payment-item-option--active::after {
+    transform: scaleX(1);
+  }
+
+  .payment-item-option--active::before {
+    background: var(--payment-accent, #111827);
+  }
+
+  .payment-item-option .payment-selected-badge {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .02em;
+    color: #fff;
+    background: var(--payment-accent, #111827);
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
+  }
+
+  .payment-item-option--active .payment-selected-badge {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .payment-item-option[data-value="1"] {
+    --payment-accent: #2563eb;
+  }
+
+  .payment-item-option[data-value="2"] {
+    --payment-accent: #db2777;
+  }
+
+  .payment-item-option[data-value="5"] {
+    --payment-accent: #059669;
+  }
+
+  .payment-item-option[data-value="1"] .payment-selected-badge {
+    background: #2563eb;
+  }
+
+  .payment-item-option[data-value="2"] .payment-selected-badge {
+    background: #db2777;
+  }
+
+  .payment-item-option[data-value="5"] .payment-selected-badge {
+    background: #059669;
+  }
+
+  .payment-item-option .payment__icon {
+    transition: transform 0.25s ease, filter 0.25s ease;
+  }
+
+  .payment-item-option--active .payment__icon {
+    transform: scale(1.08);
+    filter: drop-shadow(0 6px 12px rgba(15, 23, 42, 0.12));
+  }
+
+  .payment-item-option--active label span:first-child {
+    color: var(--payment-accent, #111827) !important;
+  }
+
+  #bank-transfer-form {
+    border: 1px solid transparent;
+    border-radius: 12px;
+    transition: opacity 0.25s ease, transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  #bank-transfer-form.is-visible {
+    border-color: #d1fae5;
+    box-shadow: 0 14px 30px rgba(5, 150, 105, 0.08);
+    transform: translateY(0);
+  }
+
+  #bank-transfer-form.is-hidden {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  #bank-transfer-form .bank-transfer-panel {
+    border: 1px solid #d1fae5;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%);
+  }
+</style>
 <section class="checkout pd-section">
   <div class="container">
     <form action="pages/handle/checkout.php" method="POST">
       <input type="hidden" name="mode" value="<?= $isBuyNow ? 'buynow' : 'cart'; ?>">
-      <input type="hidden" name="selected_items" value="<?= htmlspecialchars($selected_items_param, ENT_QUOTES, 'UTF-8'); ?>">>
+      <input type="hidden" name="selected_items" value="<?= htmlspecialchars($selected_items_param, ENT_QUOTES, 'UTF-8'); ?>">
 
       <div class="row">
         <div class="col" style="--w-md:7;">
@@ -377,6 +491,7 @@ if ($isBuyNow && !empty($_SESSION['buynow'])) {
             <h4 class="h4 payment__heading">Phương thức thanh toán:</h4>
             <div class="payment__items" style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px; width: 100%;">
               <div style="display: flex; align-items: center; width: 100%; padding: 12px; border: 2px solid #333; border-radius: 8px; cursor: pointer; gap: 16px; background: #f9f9f9; transition: all 0.3s; min-height: 80px; box-sizing: border-box;" class="payment-item-option" data-value="1">
+                <span class="payment-selected-badge">Đã chọn</span>
                 <input class="payment__radio" type="radio" name="order_type" id="payment_default" value="1" checked style="width: 20px; height: 20px; cursor: pointer; flex-shrink: 0;">
                 <img class="payment__icon" src="./assets/images/icon/icon-shipcod.png" alt="Ship COD" style="width: 48px; height: 48px; object-fit: contain; flex-shrink: 0;">
                 <label for="payment_default" style="flex: 1; cursor: pointer; display: flex; flex-direction: column; gap: 6px; margin: 0;">
@@ -385,6 +500,7 @@ if ($isBuyNow && !empty($_SESSION['buynow'])) {
                 </label>
               </div>
               <div style="display: flex; align-items: center; width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; gap: 16px; background: transparent; transition: all 0.3s; min-height: 80px; box-sizing: border-box;" class="payment-item-option" data-value="2">
+                <span class="payment-selected-badge">Đã chọn</span>
                 <input class="payment__radio" type="radio" name="order_type" id="payment_momo_qr" value="2" style="width: 20px; height: 20px; cursor: pointer; flex-shrink: 0;">
                 <img class="payment__icon" src="./assets/images/payment/qrcode.png" alt="QR CODE" style="width: 48px; height: 48px; object-fit: contain; flex-shrink: 0;">
                 <label for="payment_momo_qr" style="flex: 1; cursor: pointer; display: flex; flex-direction: column; gap: 6px; margin: 0;">
@@ -394,6 +510,7 @@ if ($isBuyNow && !empty($_SESSION['buynow'])) {
               </div>
               <!-- Chuyển khoản Ngân Hàng -->
               <div style="display: flex; align-items: center; width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; gap: 16px; background: transparent; transition: all 0.3s; min-height: 80px; box-sizing: border-box;" class="payment-item-option" data-value="5">
+                <span class="payment-selected-badge">Đã chọn</span>
                 <input class="payment__radio" type="radio" name="order_type" id="payment_bank" value="5" style="width: 20px; height: 20px; cursor: pointer; flex-shrink: 0;">
                 <img class="payment__icon" src="./assets/images/payment/icons8-money-48.png" alt="Bank Transfer" style="width: 48px; height: 48px; object-fit: contain; flex-shrink: 0;">
                 <label for="payment_bank" style="flex: 1; cursor: pointer; display: flex; flex-direction: column; gap: 6px; margin: 0;">
@@ -413,10 +530,10 @@ if ($isBuyNow && !empty($_SESSION['buynow'])) {
             </div>
 
             <!-- Bank Transfer Form (Type 5) -->
-            <div id="bank-transfer-form" style="display:none; margin-top:16px; padding:0;">
+            <div id="bank-transfer-form" class="is-hidden" style="display:none; margin-top:16px; padding:0;">
 
               <!-- Hint Box -->
-              <div style="margin-bottom:16px; padding:12px; border:1px solid #ffc107; border-radius:4px; background:#fffbea;">
+              <div class="bank-transfer-panel" style="margin-bottom:16px; padding:12px;">
                 <p style="margin:0; font-size:13px; color:#333;"><strong>Demo:</strong></p>
                 <p style="margin:8px 0 0 0; font-size:12px; color:#666; line-height:1.6;">
                   • Ngân Hàng: <strong>BIDV</strong><br>
@@ -502,6 +619,36 @@ if ($isBuyNow && !empty($_SESSION['buynow'])) {
     const bankTransferForm = document.getElementById('bank-transfer-form');
     const paymentItemOptions = document.querySelectorAll('.payment-item-option');
 
+    const paymentThemeMap = {
+      '1': {
+        border: '#2563eb',
+        background: 'rgba(37, 99, 235, 0.08)'
+      },
+      '2': {
+        border: '#db2777',
+        background: 'rgba(219, 39, 119, 0.08)'
+      },
+      '5': {
+        border: '#059669',
+        background: 'rgba(5, 150, 105, 0.08)'
+      }
+    };
+
+    function resetPaymentItem(item) {
+      item.classList.remove('payment-item-option--active');
+      item.style.borderColor = '#ddd';
+      item.style.backgroundColor = 'transparent';
+      item.style.boxShadow = 'none';
+    }
+
+    function applyPaymentTheme(item, value) {
+      const theme = paymentThemeMap[value] || paymentThemeMap['1'];
+      item.classList.add('payment-item-option--active');
+      item.style.borderColor = theme.border;
+      item.style.backgroundColor = theme.background;
+      item.style.boxShadow = '0 12px 30px rgba(15, 23, 42, 0.12)';
+    }
+
     function highlightPaymentItem() {
       const checked = document.querySelector('input[name="order_type"]:checked');
       if (!checked) return;
@@ -511,19 +658,38 @@ if ($isBuyNow && !empty($_SESSION['buynow'])) {
       paymentItemOptions.forEach(function(item) {
         const itemValue = item.getAttribute('data-value');
         if (itemValue === selectedValue) {
-          item.style.borderColor = '#333';
-          item.style.backgroundColor = '#f9f9f9';
+          applyPaymentTheme(item, selectedValue);
         } else {
-          item.style.borderColor = '#ddd';
-          item.style.backgroundColor = 'transparent';
+          resetPaymentItem(item);
         }
       });
+    }
+
+    function syncPaymentState() {
+      highlightPaymentItem();
+      toggleBankTransferForm();
+      toggleBankInfo();
     }
 
     function toggleBankTransferForm() {
       const checked = document.querySelector('input[name="order_type"]:checked');
       const value = checked ? checked.value : '1';
-      bankTransferForm.style.display = (value === '5') ? 'block' : 'none';
+      if (value === '5') {
+        bankTransferForm.style.display = 'block';
+        bankTransferForm.classList.remove('is-hidden');
+        requestAnimationFrame(function () {
+          bankTransferForm.classList.add('is-visible');
+        });
+      } else {
+        bankTransferForm.classList.remove('is-visible');
+        bankTransferForm.classList.add('is-hidden');
+        window.setTimeout(function () {
+          var currentChecked = document.querySelector('input[name="order_type"]:checked');
+          if (!currentChecked || currentChecked.value !== '5') {
+            bankTransferForm.style.display = 'none';
+          }
+        }, 220);
+      }
 
       // Clear errors when toggling away
       if (value !== '5') {
@@ -599,9 +765,7 @@ if ($isBuyNow && !empty($_SESSION['buynow'])) {
     // ============ ATTACH EVENT LISTENERS ============
     paymentRadios.forEach(function(radio) {
       radio.addEventListener('change', function() {
-        toggleBankTransferForm();
-        toggleBankInfo();
-        highlightPaymentItem();
+        syncPaymentState();
       });
     });
 
@@ -622,9 +786,9 @@ if ($isBuyNow && !empty($_SESSION['buynow'])) {
     });
 
     // ============ INIT: Highlight and show/hide forms on page load ============
-    highlightPaymentItem();
-    toggleBankTransferForm();
-    toggleBankInfo();
+    syncPaymentState();
+    window.setTimeout(syncPaymentState, 0);
+    window.addEventListener('pageshow', syncPaymentState);
 
     // ============ FORM SUBMISSION ============
     const checkoutForm = document.querySelector('form');

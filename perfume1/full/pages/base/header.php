@@ -5,21 +5,18 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+require_once __DIR__ . '/cart-session.php';
+
 // Xử lý ĐĂNG XUẤT: chỉ xoá thông tin đăng nhập, GIỮ giỏ hàng
 if (isset($_GET['logout']) && $_GET['logout'] == 1) {
+
+    cart_session_activate_owner(0);
+    unset($_SESSION['buynow']);
 
     // Xóa các khóa đăng nhập
     unset($_SESSION['account_email']);
     unset($_SESSION['account_id']);
     unset($_SESSION['account_name']);
-
-    // Nếu có session buy now thì xoá cho sạch
-    if (isset($_SESSION['buynow'])) {
-        unset($_SESSION['buynow']);
-    }
-
-    // KHÔNG xóa $_SESSION['cart'] để giữ lại giỏ hàng
-    // KHÔNG session_destroy(), KHÔNG xoá cookie phiên
 
     header('Location: index.php');
     exit;
@@ -30,6 +27,8 @@ $accountId    = (int)($_SESSION['account_id'] ?? 0);
 $accountEmail = $_SESSION['account_email'] ?? '';
 $accountName  = trim($_SESSION['account_name'] ?? '');
 $isLoggedIn   = ($accountId > 0 || $accountEmail !== '');
+
+cart_session_activate_owner($accountId);
 $cartCount    = (isset($_SESSION['cart']) && is_array($_SESSION['cart'])) ? count($_SESSION['cart']) : 0;
 
 // Tên hiển thị trên header (nếu chưa có tên thì fallback "Tài khoản")

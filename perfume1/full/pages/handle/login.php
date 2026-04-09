@@ -11,6 +11,7 @@ if (session_status() === PHP_SESSION_NONE) {
 @ini_set('log_errors', '1');
 
 require_once __DIR__ . '/../../admin/config/config.php'; // $mysqli
+require_once __DIR__ . '/../base/cart-session.php';
 
 // Chỉ xử lý POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -82,6 +83,9 @@ try {
         $_SESSION['account_id']    = (int)$row['account_id'];
         $_SESSION['account_email'] = (string)$row['account_email'];
         $_SESSION['account_name']  = (string)($row['account_name'] ?? '');
+
+        cart_session_activate_owner((int)$row['account_id']);
+        unset($_SESSION['buynow']);
 
         // Ghi chắc session rồi mới redirect (tránh mất session sau 302)
         session_regenerate_id(true);
