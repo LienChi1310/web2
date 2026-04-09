@@ -1,26 +1,6 @@
 <?php
 include('../../config/config.php');
-
-/* =========================
-   HÀM ESCAPE
-========================= */
-function db_escape($mysqli, $value)
-{
-    return mysqli_real_escape_string($mysqli, trim((string)$value));
-}
-
-/* =========================
-   HÀM TÍNH GIÁ BÁN
-========================= */
-function calc_sell_price($import_price, $profit_percent)
-{
-    $import_price = (float)$import_price;
-    $profit_percent = (float)$profit_percent;
-
-    if ($import_price <= 0) return 0;
-
-    return round($import_price * (1 + $profit_percent / 100));
-}
+// db_escape(), calculate_sell_price() available from config/helpers.php
 
 /* =====================================================
  * 1) TẠO PHIẾU NHẬP
@@ -69,7 +49,6 @@ if (isset($_POST['inventory_add'])) {
 
         header('Location: ../../index.php?action=inventory&query=inventory_detail&inventory_id=' . $inventory_id);
         exit;
-
     } catch (Exception $e) {
         mysqli_rollback($mysqli);
         header('Location: ../../index.php?action=inventory&query=inventory_add');
@@ -146,7 +125,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'complete') {
             }
 
             // 🔥 GIÁ BÁN ĐÚNG ĐỀ
-            $new_sell = calc_sell_price($new_import, $profit);
+            $new_sell = calculate_sell_price($new_import, $profit);
 
             mysqli_query($mysqli, "
                 UPDATE product SET
@@ -168,7 +147,6 @@ if (isset($_GET['action']) && $_GET['action'] == 'complete') {
 
         header('Location: ../../index.php?action=inventory&query=inventory_detail&inventory_id=' . $inventory_id);
         exit;
-
     } catch (Exception $e) {
         mysqli_rollback($mysqli);
         header('Location: ../../index.php?action=inventory&query=inventory_list');
@@ -225,4 +203,3 @@ if (isset($_POST['inventory_edit'])) {
  * ===================================================== */
 header('Location: ../../index.php?action=inventory&query=inventory_list');
 exit;
-?>

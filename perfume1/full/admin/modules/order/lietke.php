@@ -297,7 +297,7 @@ $query_order_list = mysqli_query($mysqli, $sql_order_list);
                     $row_count = $query_pages ? mysqli_num_rows($query_pages) : 0;
                     $totalpage = ceil($row_count / 10);
 
-                    $baseLink = "index.php?action=order&query=order_list{$url_status}{$url_date}{$url_from}{$url_to}{$url_addr}";
+                    $baseLink = "index.php?action=order&query=order_list{$url_status}{$url_type}{$url_date}{$url_from}{$url_to}{$url_addr}{$url_search}";
 
                     if ($totalpage > 1) {
                     ?>

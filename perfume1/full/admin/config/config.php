@@ -23,6 +23,9 @@ if ($isDocker) {
 
 $mysqli = @new mysqli($host, $user, $pass, $db, $port);
 if ($mysqli->connect_errno) {
-    die('MySQL connect error ['.$mysqli->connect_errno.']: '.$mysqli->connect_error);
+    die('MySQL connect error [' . $mysqli->connect_errno . ']: ' . $mysqli->connect_error);
 }
 $mysqli->set_charset('utf8mb4');
+
+// Include shared helpers
+require_once(__DIR__ . '/helpers.php');

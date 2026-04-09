@@ -21,28 +21,6 @@ $sql_detail = "
     ORDER BY d.id ASC
 ";
 $query_detail = mysqli_query($mysqli, $sql_detail);
-
-function inventory_status_text($value)
-{
-    if ($value == 1) {
-        return 'Đã hoàn thành';
-    }
-    if ($value == -1) {
-        return 'Đã hủy';
-    }
-    return 'Chưa hoàn thành';
-}
-
-function inventory_status_class($value)
-{
-    if ($value == 1) {
-        return 'bg-success text-white';
-    }
-    if ($value == -1) {
-        return 'bg-danger text-white';
-    }
-    return 'bg-warning text-dark';
-}
 ?>
 
 <div class="row">
@@ -97,18 +75,18 @@ function inventory_status_class($value)
                                         $line_total = (int)$row['quantity'] * (int)$row['price_import'];
                                         $total += $line_total;
                                 ?>
-                                    <tr>
-                                        <td><?php echo $i; ?></td>
-                                        <td><?php echo htmlspecialchars($row['product_name']); ?></td>
-                                        <td><?php echo (int)$row['quantity']; ?></td>
-                                        <td><?php echo number_format((int)$row['price_import'], 0, ',', '.'); ?> đ</td>
-                                        <td><?php echo number_format($line_total, 0, ',', '.'); ?> đ</td>
-                                        <td><?php echo (int)$row['current_stock']; ?></td>
-                                    </tr>
-                                <?php
+                                        <tr>
+                                            <td><?php echo $i; ?></td>
+                                            <td><?php echo htmlspecialchars($row['product_name']); ?></td>
+                                            <td><?php echo (int)$row['quantity']; ?></td>
+                                            <td><?php echo number_format((int)$row['price_import'], 0, ',', '.'); ?> đ</td>
+                                            <td><?php echo number_format($line_total, 0, ',', '.'); ?> đ</td>
+                                            <td><?php echo (int)$row['current_stock']; ?></td>
+                                        </tr>
+                                    <?php
                                     }
                                 } else {
-                                ?>
+                                    ?>
                                     <tr>
                                         <td colspan="6" class="text-center">Phiếu nhập chưa có sản phẩm.</td>
                                     </tr>
@@ -126,22 +104,22 @@ function inventory_status_class($value)
                     <?php if ((int)$row_inventory['inventory_status'] == 0) { ?>
                         <div class="mt-4 d-flex flex-wrap gap-2">
                             <a href="index.php?action=inventory&query=inventory_edit&inventory_id=<?php echo $row_inventory['inventory_id']; ?>"
-                               class="btn btn-warning btn-sm">
+                                class="btn btn-warning btn-sm">
                                 Sửa phiếu nhập
                             </a>
 
                             <form action="modules/inventory/xuly.php?inventory_id=<?php echo $row_inventory['inventory_id']; ?>"
-                                  method="POST"
-                                  onsubmit="return confirm('Xác nhận hoàn thành phiếu nhập? Hệ thống sẽ cộng tồn kho và cập nhật giá vốn bình quân.');"
-                                  style="display:inline-block;">
+                                method="POST"
+                                onsubmit="return confirm('Xác nhận hoàn thành phiếu nhập? Hệ thống sẽ cộng tồn kho và cập nhật giá vốn bình quân.');"
+                                style="display:inline-block;">
                                 <button type="submit" name="inventory_complete" class="btn btn-success btn-sm">
                                     Hoàn thành phiếu nhập
                                 </button>
                             </form>
 
                             <a href="modules/inventory/xuly.php?action=cancel&inventory_id=<?php echo $row_inventory['inventory_id']; ?>"
-                               class="btn btn-danger btn-sm"
-                               onclick="return confirm('Bạn có chắc muốn hủy phiếu nhập này không?');">
+                                class="btn btn-danger btn-sm"
+                                onclick="return confirm('Bạn có chắc muốn hủy phiếu nhập này không?');">
                                 Hủy phiếu nhập
                             </a>
                         </div>

@@ -85,7 +85,13 @@ $query_product_edit = mysqli_query($mysqli, $sql_product_edit);
 
                             <div class="input-item form-group">
                                 <label class="d-block">Sale (%)</label>
-                                <input class="d-block form-control" name="product_sale" type="number" min="0" value="<?php echo $row['product_sale']; ?>" placeholder="product sale">
+                                <input class="d-block form-control" id="product_sale" name="product_sale" type="number" min="0" value="<?php echo $row['product_sale']; ?>" placeholder="product sale">
+                            </div>
+
+                            <div class="input-item form-group">
+                                <label class="d-block">Giá bán cuối cùng (sau khi - sale)</label>
+                                <input class="d-block form-control" id="product_price_final" type="number" min="0" readonly placeholder="Giá bán cuối">
+                                <small class="text-muted">Giá này là những gì khách hàng sẽ trả</small>
                             </div>
 
                             <div class="input-item form-group">
@@ -309,6 +315,40 @@ if (isset($_GET['message']) && $_GET['message'] == 'success') {
     $('.select_capacity').chosen();
     $('.select_category').chosen();
 
+    // ===== REAL-TIME PRICE CALCULATION =====
+    const priceImportInput = document.getElementById('product_price_import');
+    const profitInput = document.getElementById('product_profit_percent');
+    const priceOutput = document.getElementById('product_price');
+
+    /**
+     * Calculate sell price based on import price and profit percentage
+     * Formula: sell_price = import_price × (100 + profit_percent) / 100
+     */
+    function calculatePrice() {
+        const importPrice = parseInt(priceImportInput.value) || 0;
+        const profitPercent = parseInt(profitInput.value) || 0;
+
+        if (importPrice <= 0) {
+            priceOutput.value = 0;
+            return;
+        }
+
+        const sellPrice = Math.round(importPrice * (100 + profitPercent) / 100);
+        priceOutput.value = sellPrice;
+    }
+
+    // Attach event listeners
+    if (priceImportInput && profitInput && priceOutput) {
+        priceImportInput.addEventListener('input', calculatePrice);
+        priceImportInput.addEventListener('change', calculatePrice);
+
+        profitInput.addEventListener('input', calculatePrice);
+        profitInput.addEventListener('change', calculatePrice);
+
+        // Initial calculation on page load
+        calculatePrice();
+    }
+
     // Initialize TinyMCE
     tinymce.init({
         selector: '#product_description',
@@ -326,12 +366,18 @@ if (isset($_GET['message']) && $_GET['message'] == 'success') {
     function calculateSellPriceEdit() {
         const importPrice = parseFloat(document.getElementById('product_price_import').value) || 0;
         const profitPercent = parseFloat(document.getElementById('product_profit_percent').value) || 0;
+        const salePercent = parseFloat(document.getElementById('product_sale').value) || 0;
+
         const sellPrice = Math.round(importPrice * (100 + profitPercent) / 100);
+        const finalPrice = Math.round(sellPrice - (sellPrice * salePercent / 100));
+
         document.getElementById('product_price').value = sellPrice > 0 ? sellPrice : '';
+        document.getElementById('product_price_final').value = finalPrice > 0 ? finalPrice : '';
     }
 
     document.getElementById('product_price_import').addEventListener('input', calculateSellPriceEdit);
     document.getElementById('product_profit_percent').addEventListener('input', calculateSellPriceEdit);
+    document.getElementById('product_sale').addEventListener('input', calculateSellPriceEdit);
     calculateSellPriceEdit();
 </script>
 

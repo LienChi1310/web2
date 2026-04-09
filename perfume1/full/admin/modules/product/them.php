@@ -108,6 +108,12 @@
                         </div>
 
                         <div class="input-item form-group">
+                            <label for="product_price_final" class="d-block">Giá bán cuối cùng (sau khi - sale)</label>
+                            <input class="d-block form-control" id="product_price_final" type="number" min="0" readonly placeholder="Giá bán cuối">
+                            <small class="text-muted">Giá này là những gì khách hàng sẽ trả</small>
+                        </div>
+
+                        <div class="input-item form-group">
                             <label for="product_status" class="d-block">Trạng thái</label>
                             <select name="product_status" id="product_status" class="form-control">
                                 <option value="1">Hiển thị / Đang bán</option>
@@ -146,6 +152,51 @@
     $('.select_brand').chosen();
     $('.select_capacity').chosen();
     $('.select_category').chosen();
+
+    // ===== REAL-TIME PRICE CALCULATION =====
+    const priceImportInput = document.getElementById('product_price_import');
+    const profitInput = document.getElementById('product_profit_percent');
+    const saleInput = document.getElementById('product_sale');
+    const priceOutput = document.getElementById('product_price');
+    const priceFinalOutput = document.getElementById('product_price_final');
+
+    /**
+     * Calculate sell price based on import price and profit percentage
+     * Formula: sell_price = import_price × (100 + profit_percent) / 100
+     * Final price = sell_price - (sell_price × sale_percent / 100)
+     */
+    function calculatePrice() {
+        const importPrice = parseInt(priceImportInput.value) || 0;
+        const profitPercent = parseInt(profitInput.value) || 0;
+        const salePercent = parseInt(saleInput.value) || 0;
+
+        if (importPrice <= 0) {
+            priceOutput.value = 0;
+            priceFinalOutput.value = 0;
+            return;
+        }
+
+        const sellPrice = Math.round(importPrice * (100 + profitPercent) / 100);
+        const finalPrice = Math.round(sellPrice - (sellPrice * salePercent / 100));
+
+        priceOutput.value = sellPrice;
+        priceFinalOutput.value = finalPrice > 0 ? finalPrice : 0;
+    }
+
+    // Attach event listeners
+    if (priceImportInput && profitInput && priceOutput) {
+        priceImportInput.addEventListener('input', calculatePrice);
+        priceImportInput.addEventListener('change', calculatePrice);
+
+        profitInput.addEventListener('input', calculatePrice);
+        profitInput.addEventListener('change', calculatePrice);
+
+        saleInput.addEventListener('input', calculatePrice);
+        saleInput.addEventListener('change', calculatePrice);
+
+        // Initial calculation on page load
+        calculatePrice();
+    }
 
     // Initialize TinyMCE
     tinymce.init({
