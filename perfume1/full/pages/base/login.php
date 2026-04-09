@@ -129,7 +129,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
                 </div>
 
                 <div class="forget">
-                    <label><input type="checkbox">Remember Me</label>
                     <a class="forget-link" href="index.php?page=forget_password">Forget Password</a>
                 </div>
 

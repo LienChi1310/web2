@@ -143,6 +143,13 @@ if ($priceSort !== '') {
     $base_params['pricesort'] = $priceSort;
 }
 
+$sort_label_map = [
+    '' => 'Giá: Mặc định',
+    'asc' => 'Giá: Thấp đến cao',
+    'desc' => 'Giá: Cao đến thấp',
+];
+$current_sort_label = $sort_label_map[$priceSort] ?? $sort_label_map[''];
+
 $build_search_url = static function (array $params) {
     return 'index.php?' . http_build_query($params);
 };
@@ -178,12 +185,20 @@ $build_search_url = static function (array $params) {
                         <div class="sort__item h5">
                             <details class="sort__select p-relative">
                                 <summary class="cursor-pointer d-flex align-center">
-                                    Giá
+                                    <?php echo htmlspecialchars($current_sort_label, ENT_QUOTES, 'UTF-8'); ?>
                                     <img src="./assets/images/icon/icon-chevron-down.svg" alt="down" class="icon-open d-block" style="margin-left: 8px;">
                                     <img src="./assets/images/icon/chevron-up.svg" alt="up" class="icon-close d-none" style="margin-left: 8px;">
                                 </summary>
                                 <div class="sort__selectbox p-absolute selectbox__right">
-                                    <div class="selectbox__item">
+                                    <div class="selectbox__item <?php echo $priceSort === '' ? 'selectbox__item--active' : ''; ?>">
+                                        <?php
+                                        $params_default = $base_params;
+                                        unset($params_default['pricesort']);
+                                        $params_default['pagenumber'] = 1;
+                                        ?>
+                                        <a href="<?php echo $build_search_url($params_default); ?>">Mặc định</a>
+                                    </div>
+                                    <div class="selectbox__item <?php echo $priceSort === 'asc' ? 'selectbox__item--active' : ''; ?>">
                                         <?php
                                         $params_asc = $base_params;
                                         $params_asc['pricesort'] = 'asc';
@@ -191,7 +206,7 @@ $build_search_url = static function (array $params) {
                                         ?>
                                         <a href="<?php echo $build_search_url($params_asc); ?>">Giá từ thấp đến cao</a>
                                     </div>
-                                    <div class="selectbox__item">
+                                    <div class="selectbox__item <?php echo $priceSort === 'desc' ? 'selectbox__item--active' : ''; ?>">
                                         <?php
                                         $params_desc = $base_params;
                                         $params_desc['pricesort'] = 'desc';

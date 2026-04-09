@@ -1233,6 +1233,15 @@ h6,
   cursor: pointer;
 }
 
+.product__sort .selectbox__item--active {
+  background-color: #f4f8ff;
+}
+
+.product__sort .selectbox__item--active a {
+  color: #0b57d0;
+  font-weight: 700;
+}
+
 .selectbox__item a {
   text-decoration: none;
   color: var(--color-text-black);
