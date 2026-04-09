@@ -215,6 +215,7 @@ function get_sort_url($column)
                                     <input type="checkbox" id="checkAll" title="Chọn tất cả">
                                 </th>
                                 <th style="width: 50px; text-align: center;">STT</th>
+                                <th style="width: 80px;">Mã SP</th>
                                 <th></th>
                                 <th style="cursor: pointer;"><a href="<?php echo get_sort_url('product_name'); ?>" style="color: inherit; text-decoration: none;">Tên sản phẩm <?php if ($sort_column === 'product_name') echo ($sort_order === 'ASC') ? '↑' : '↓'; ?></a></th>
                                 <th style="cursor: pointer;"><a href="<?php echo get_sort_url('product_quantity'); ?>" style="color: inherit; text-decoration: none;">Tồn kho <?php if ($sort_column === 'product_quantity') echo ($sort_order === 'ASC') ? '↑' : '↓'; ?></a></th>
@@ -246,6 +247,7 @@ function get_sort_url($column)
                                     </td>
                                     <td style="text-align: center;"><?php echo $stt;
                                                                     $stt++; ?></td>
+                                    <td><?php echo $row['product_id']; ?></td>
                                     <td><img src="modules/product/uploads/<?php echo $row['product_image']; ?>" class="product_image" alt="image"></td>
                                     <td>
                                         <?php echo $row['product_name']; ?>

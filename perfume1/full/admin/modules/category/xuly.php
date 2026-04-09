@@ -1,29 +1,6 @@
 <?php
 include('../../config/config.php');
 
-/**
- * Lấy danh sách ID từ tham số ?data=
- */
-function get_ids_from_data()
-{
-    if (!isset($_GET['data']) || $_GET['data'] === '') {
-        return [];
-    }
-
-    $data    = $_GET['data'];
-    $decoded = json_decode($data, true);
-
-    if (json_last_error() !== JSON_ERROR_NONE) {
-        return [];
-    }
-
-    if (is_array($decoded)) {
-        return $decoded;
-    }
-
-    return [$decoded];
-}
-
 $category_id = isset($_GET['category_id']) ? (int)$_GET['category_id'] : 0;
 
 /* ==========================================================
@@ -56,8 +33,7 @@ if (isset($_POST['category_add'])) {
 
 /* ==========================================================
  * 2) SỬA DANH MỤC
- * ========================================================== */
-elseif (isset($_POST['category_edit'])) {
+ * ========================================================== */ elseif (isset($_POST['category_edit'])) {
 
     $category_name        = $_POST['category_name']        ?? '';
     $category_description = $_POST['category_description'] ?? '';
@@ -104,8 +80,7 @@ elseif (isset($_POST['category_edit'])) {
 
 /* ==========================================================
  * 3) XOÁ NHIỀU DANH MỤC (?data=[...])
- * ========================================================== */
-else {
+ * ========================================================== */ else {
 
     $category_ids = get_ids_from_data();
 
@@ -129,5 +104,3 @@ else {
     header('Location: ../../index.php?action=category&query=category_list');
     exit;
 }
-
-?>

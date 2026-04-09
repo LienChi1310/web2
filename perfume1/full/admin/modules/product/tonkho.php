@@ -63,7 +63,7 @@ $query_product_list = mysqli_query($mysqli, $sql_product_list);
                                         <input type="checkbox" class="checkbox" onclick="testChecked(); getCheckedCheckboxes();" id="<?php echo $row['product_id'] ?>">
                                     </td>
                                     <td style="text-align: center;"><?php echo $stt; ?></td>
-                                    <td><img src="modules/product/uploads/<?php echo $row['product_image'] ?>" class="product_image" alt="image"></td>
+                                    <td><img src="modules/product/uploads/<?php echo $row['product_image'] ?>" class="product_image" alt="image" onerror="this.src='images/placeholder-image.webp'">
                                     <td><?php echo $row['product_name'] ?></td>
                                     <td class="<?php echo format_quantity_style($row['product_quantity']) ?>"><?php echo $row['product_quantity'] ?></td>
                                     <td><?php echo number_format($row['product_price']) . ' ₫' ?></td>

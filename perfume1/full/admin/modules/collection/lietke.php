@@ -74,7 +74,7 @@ $query_collection_list = mysqli_query($mysqli, $sql_collection_list);
                                     </td>
                                     <td style="text-align: center;"><?php echo $stt;
                                                                     $stt++; ?></td>
-                                    <td><img src="modules/collection/uploads/<?php echo $row['collection_image'] ?>" alt=""></td>
+                                    <td><img src="modules/collection/uploads/<?php echo $row['collection_image'] ?>" alt="" onerror="this.src='images/placeholder-image.webp'"></td>
                                     <td><?php echo $row['collection_name'] ?></td>
                                     <td><?php echo format_collection_type($row['collection_type']) ?></td>
                                 </tr>

@@ -47,7 +47,7 @@ if (isset($_POST['inventory_add'])) {
 
         mysqli_commit($mysqli);
 
-        header('Location: ../../index.php?action=inventory&query=inventory_detail&inventory_id=' . $inventory_id);
+        header('Location: ../../index.php?action=inventory&query=inventory_list&message=success');
         exit;
     } catch (Exception $e) {
         mysqli_rollback($mysqli);

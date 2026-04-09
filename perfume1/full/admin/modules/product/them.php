@@ -17,6 +17,12 @@
                 <div class="card-body">
                     <div class="card-content">
                         <div class="input-item form-group">
+                            <label class="d-block">Mã sản phẩm</label>
+                            <input type="text" class="d-block form-control" value="Sẽ tự động sinh sau khi lưu" readonly>
+                            <small class="text-muted">Mã sẽ được sinh tự động (ID)</small>
+                        </div>
+
+                        <div class="input-item form-group">
                             <label for="product_name" class="d-block">Tên sản phẩm</label>
                             <input type="text" id="product_name" name="product_name" class="d-block form-control" value="" placeholder="Tên sản phẩm" required>
                             <span class="form-message"></span>
@@ -46,6 +52,20 @@
                                 while ($row_capacity = mysqli_fetch_array($query_capacity_list)) {
                                 ?>
                                     <option value="<?php echo $row_capacity['capacity_id']; ?>"><?php echo $row_capacity['capacity_name']; ?></option>
+                                <?php } ?>
+                            </select>
+                        </div>
+
+                        <div class="input-item form-group">
+                            <label for="product_category" class="d-block">Danh mục sản phẩm</label>
+                            <select name="product_category" id="product_category" class="form-control select_category">
+                                <option value="0">Chưa phân loại</option>
+                                <?php
+                                $sql_category_list = "SELECT * FROM category ORDER BY category_id DESC";
+                                $query_category_list = mysqli_query($mysqli, $sql_category_list);
+                                while ($row_category = mysqli_fetch_array($query_category_list)) {
+                                ?>
+                                    <option value="<?php echo $row_category['category_id']; ?>"><?php echo $row_category['category_name']; ?></option>
                                 <?php } ?>
                             </select>
                         </div>
@@ -118,20 +138,6 @@
                             <select name="product_status" id="product_status" class="form-control">
                                 <option value="1">Hiển thị / Đang bán</option>
                                 <option value="0">Ẩn / Tạm dừng bán</option>
-                            </select>
-                        </div>
-
-                        <div class="input-item form-group">
-                            <label for="product_category" class="d-block">Danh mục sản phẩm</label>
-                            <select name="product_category" id="product_category" class="form-control select_category">
-                                <option value="0">Chưa phân loại</option>
-                                <?php
-                                $sql_category_list = "SELECT * FROM category ORDER BY category_id DESC";
-                                $query_category_list = mysqli_query($mysqli, $sql_category_list);
-                                while ($row_category = mysqli_fetch_array($query_category_list)) {
-                                ?>
-                                    <option value="<?php echo $row_category['category_id']; ?>"><?php echo $row_category['category_name']; ?></option>
-                                <?php } ?>
                             </select>
                         </div>
                     </div>

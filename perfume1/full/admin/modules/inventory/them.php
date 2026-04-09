@@ -116,7 +116,7 @@ $brands = get_all_brands($mysqli);
                         </div>
 
                         <div class="input-item form-group">
-                            <button type="submit" name="create" class="btn btn-primary" style="width: 100%;">
+                            <button type="submit" name="inventory_add" class="btn btn-primary" style="width: 100%;">
                                 <i class="mdi mdi-content-save"></i>
                                 Lưu phiếu nhập
                             </button>

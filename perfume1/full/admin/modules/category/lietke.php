@@ -88,7 +88,7 @@ $query_category_list = mysqli_query($mysqli, $sql_category_list);
                                             src="modules/category/uploads/<?php echo $row['category_image'] ?>"
                                             alt="<?php echo htmlspecialchars($row['category_name']); ?>"
                                             style="width: 56px; height: 56px; object-fit: cover; border-radius: 12px; border: 1px solid #eee;"
-                                            onerror="this.src='images/no-image.png'">
+                                            onerror="this.src='images/placeholder-image.webp'">
                                     </td>
 
                                     <td style="vertical-align: middle; font-weight: 500;">

@@ -32,8 +32,12 @@ $query_collection_edit = mysqli_query($mysqli, $sql_collection_edit);
                         <div class="input-item form-group">
                             <label for="collection_type" class="d-block">Loại bộ sưu tập</label>
                             <select name="collection_type" id="collection_type" class="form-control">
-                                <option value="1" <?php if($item['collection_type'] == 1 ) { echo "selected"; } ?>>Phân loại theo từ khóa</option>
-                                <option value="0" <?php if($item['collection_type'] == 0 ) { echo "selected"; } ?>>Tùy chọn sản phẩm</option>
+                                <option value="1" <?php if ($item['collection_type'] == 1) {
+                                                        echo "selected";
+                                                    } ?>>Phân loại theo từ khóa</option>
+                                <option value="0" <?php if ($item['collection_type'] == 0) {
+                                                        echo "selected";
+                                                    } ?>>Tùy chọn sản phẩm</option>
                             </select>
                         </div>
                         <div class="input-item form-group">
@@ -47,7 +51,7 @@ $query_collection_edit = mysqli_query($mysqli, $sql_collection_edit);
                         <div class="input-item form-group">
                             <label for="image" class="d-block">Image</label>
                             <input type="file" name="collection_image" value="<?php echo $row['collection_image'] ?>">
-                            <img src="modules/collection/uploads/<?php echo $item['collection_image'] ?>" class="collection_image" style="width: 100px; height: 100px;" alt="image">
+                            <img src="modules/collection/uploads/<?php echo $item['collection_image'] ?>" class="collection_image" style="width: 100px; height: 100px;" alt="image" onerror="this.src='../../images/placeholder-image.webp'">
                         </div>
                         <button type="submit" name="collection_edit" class="btn btn-primary btn-icon-text">
                             <i class="ti-file btn-icon-prepend"></i>

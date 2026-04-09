@@ -1,125 +1,6 @@
 <?php
 include('../../config/config.php');
 
-/**
- * Helper: escape string an toàn hơn
- */
-function db_escape($mysqli, $value)
-{
-    return mysqli_real_escape_string($mysqli, trim((string)$value));
-}
-
-/**
- * Helper: lấy danh sách id từ tham số ?data=
- */
-function get_ids_from_data()
-{
-    if (!isset($_GET['data']) || $_GET['data'] === '') {
-        return [];
-    }
-
-    $data = $_GET['data'];
-    $decoded = json_decode($data, true);
-
-    if (json_last_error() !== JSON_ERROR_NONE) {
-        return [];
-    }
-
-    if (is_array($decoded)) {
-        return $decoded;
-    }
-
-    return [$decoded];
-}
-
-/**
- * Kiểm tra bảng có tồn tại hay không
- */
-function table_exists($mysqli, $table_name)
-{
-    $table_name = mysqli_real_escape_string($mysqli, $table_name);
-    $sql = "SHOW TABLES LIKE '{$table_name}'";
-    $query = mysqli_query($mysqli, $sql);
-    return ($query && mysqli_num_rows($query) > 0);
-}
-
-/**
- * Kiểm tra cột có tồn tại hay không
- */
-function column_exists($mysqli, $table_name, $column_name)
-{
-    $table_name = mysqli_real_escape_string($mysqli, $table_name);
-    $column_name = mysqli_real_escape_string($mysqli, $column_name);
-
-    $sql = "SHOW COLUMNS FROM `{$table_name}` LIKE '{$column_name}'";
-    $query = mysqli_query($mysqli, $sql);
-
-    return ($query && mysqli_num_rows($query) > 0);
-}
-
-/**
- * Tính giá bán theo % lợi nhuận
- */
-function calculate_sell_price($import_price, $profit_percent)
-{
-    $import_price = (int)$import_price;
-    $profit_percent = (int)$profit_percent;
-
-    if ($import_price < 0) $import_price = 0;
-    if ($profit_percent < 0) $profit_percent = 0;
-
-    return (int) round($import_price * (100 + $profit_percent) / 100);
-}
-
-/**
- * Kiểm tra sản phẩm đã phát sinh dữ liệu chưa
- * - Nếu đã có trong order_detail hoặc inventory_detail => không xóa cứng
- */
-function product_has_related_data($mysqli, $product_id)
-{
-    $product_id = (int)$product_id;
-    if ($product_id <= 0) {
-        return false;
-    }
-
-    $sql_order = "SELECT order_detail_id FROM order_detail WHERE product_id = '{$product_id}' LIMIT 1";
-    $query_order = mysqli_query($mysqli, $sql_order);
-    if ($query_order && mysqli_num_rows($query_order) > 0) {
-        return true;
-    }
-
-    if (table_exists($mysqli, 'inventory_detail')) {
-        $sql_inventory = "SELECT id FROM inventory_detail WHERE product_id = '{$product_id}' LIMIT 1";
-        $query_inventory = mysqli_query($mysqli, $sql_inventory);
-        if ($query_inventory && mysqli_num_rows($query_inventory) > 0) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-/**
- * Xóa ảnh sản phẩm
- */
-function delete_product_image($mysqli, $product_id)
-{
-    $product_id = (int)$product_id;
-    if ($product_id <= 0) {
-        return;
-    }
-
-    $sql = "SELECT product_image FROM product WHERE product_id = '{$product_id}' LIMIT 1";
-    $query = mysqli_query($mysqli, $sql);
-
-    if ($query && mysqli_num_rows($query) > 0) {
-        $row = mysqli_fetch_array($query);
-        if (!empty($row['product_image']) && file_exists('uploads/' . $row['product_image'])) {
-            @unlink('uploads/' . $row['product_image']);
-        }
-    }
-}
-
 $product_id = isset($_GET['product_id']) ? (int)$_GET['product_id'] : 0;
 $has_profit_column = column_exists($mysqli, 'product', 'product_profit_percent');
 
@@ -223,8 +104,7 @@ if (isset($_POST['product_add'])) {
 
 /* =====================================================
  * 2) SỬA SẢN PHẨM
- * ===================================================== */
-elseif (isset($_POST['product_edit'])) {
+ * ===================================================== */ elseif (isset($_POST['product_edit'])) {
 
     $product_name     = db_escape($mysqli, $_POST['product_name'] ?? '');
     $product_brand    = (int)($_POST['product_brand'] ?? 0);
@@ -296,8 +176,7 @@ elseif (isset($_POST['product_edit'])) {
 
 /* =====================================================
  * 3) SET GIẢM GIÁ HÀNG LOẠT
- * ===================================================== */
-elseif (isset($_GET['product_sale'])) {
+ * ===================================================== */ elseif (isset($_GET['product_sale'])) {
 
     $sale        = (int)$_GET['product_sale'];
     $product_ids = get_ids_from_data();
@@ -320,8 +199,7 @@ elseif (isset($_GET['product_sale'])) {
 
 /* =====================================================
  * 4) XÓA ĐÁNH GIÁ
- * ===================================================== */
-elseif (isset($_GET['deleteevaluate']) && (int)$_GET['deleteevaluate'] === 1) {
+ * ===================================================== */ elseif (isset($_GET['deleteevaluate']) && (int)$_GET['deleteevaluate'] === 1) {
 
     $evaluate_ids = get_ids_from_data();
 
@@ -343,8 +221,7 @@ elseif (isset($_GET['deleteevaluate']) && (int)$_GET['deleteevaluate'] === 1) {
 
 /* =====================================================
  * 5) ĐÁNH DẤU SPAM ĐÁNH GIÁ
- * ===================================================== */
-elseif (isset($_GET['spamevaluate']) && (int)$_GET['spamevaluate'] === 1) {
+ * ===================================================== */ elseif (isset($_GET['spamevaluate']) && (int)$_GET['spamevaluate'] === 1) {
 
     $evaluate_ids = get_ids_from_data();
 
@@ -366,8 +243,7 @@ elseif (isset($_GET['spamevaluate']) && (int)$_GET['spamevaluate'] === 1) {
 
 /* =====================================================
  * 6) XÓA / ẨN SẢN PHẨM HÀNG LOẠT
- * ===================================================== */
-else {
+ * ===================================================== */ else {
 
     $product_ids = get_ids_from_data();
 
@@ -393,4 +269,3 @@ else {
     header('Location: ../../index.php?action=product&query=product_list&message=success');
     exit;
 }
-?>
