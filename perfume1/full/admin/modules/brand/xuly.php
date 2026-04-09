@@ -1,22 +1,6 @@
 <?php
 include('../../config/config.php');
 
-function get_ids_from_data()
-{
-    if (!isset($_GET['data']) || $_GET['data'] === '') {
-        return [];
-    }
-
-    $decoded = json_decode($_GET['data'], true);
-
-    if (json_last_error() !== JSON_ERROR_NONE) {
-        return [];
-    }
-
-    if (is_array($decoded)) return $decoded;
-    return [$decoded];
-}
-
 $brand_id = isset($_GET['brand_id']) ? (int)$_GET['brand_id'] : 0;
 
 /* ===== 1) THÊM ===== */
@@ -31,8 +15,7 @@ if (isset($_POST['brand_add'])) {
     exit;
 }
 
-/* ===== 2) SỬA ===== */
-elseif (isset($_POST['brand_edit'])) {
+/* ===== 2) SỬA ===== */ elseif (isset($_POST['brand_edit'])) {
 
     $brand_name = $_POST['brand_name'] ?? '';
 
@@ -47,8 +30,7 @@ elseif (isset($_POST['brand_edit'])) {
     exit;
 }
 
-/* ===== 3) XOÁ NHIỀU ===== */
-else {
+/* ===== 3) XOÁ NHIỀU ===== */ else {
     $brand_ids = get_ids_from_data();
 
     foreach ($brand_ids as $id) {
@@ -61,4 +43,3 @@ else {
     header('Location: ../../index.php?action=brand&query=brand_list&message=success');
     exit;
 }
-?>

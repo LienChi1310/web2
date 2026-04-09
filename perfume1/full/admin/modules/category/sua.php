@@ -50,7 +50,7 @@ while ($item = mysqli_fetch_array($query_category_edit)) {
                                 <label for="image" class="d-block">Image</label>
                                 <div class="image-box w-100">
                                     <figure class="image-container p-relative">
-                                        <img src="modules/category/uploads/<?php echo $item['category_image'] ?>" id="chosen-image">
+                                        <img src="modules/category/uploads/<?php echo $item['category_image'] ?>" id="chosen-image" onerror="this.src='../../images/placeholder-image.webp'">
                                         <figcaption id="file-name"></figcaption>
                                     </figure>
                                     <input type="file" class="d-none" id="category_image" name="category_image" accept="image/*">
