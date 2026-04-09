@@ -215,6 +215,8 @@ while ($row_product_detail = mysqli_fetch_array($query_product_detail)) {
                         $desc = (string)($row_product_detail['product_description'] ?? '');
                         $pairs = [];
                         $seen = [];
+                        $narrativeLines = [];
+                        $seenNarrative = [];
 
                         $canonicalLabels = [
                             'tên sản phẩm' => 'Tên sản phẩm',
@@ -280,6 +282,21 @@ while ($row_product_detail = mysqli_fetch_array($query_product_detail)) {
                             ];
                         };
 
+                        $addNarrativeLine = function ($line) use (&$narrativeLines, &$seenNarrative) {
+                            $line = trim((string)$line, " \t\n\r\0\x0B-•");
+                            if ($line === '') {
+                                return;
+                            }
+
+                            $key = mb_strtolower($line, 'UTF-8');
+                            if (isset($seenNarrative[$key])) {
+                                return;
+                            }
+
+                            $seenNarrative[$key] = true;
+                            $narrativeLines[] = $line;
+                        };
+
                         // 1) Extract from HTML tables first.
                         if (preg_match_all('/<tr[^>]*>(.*?)<\/tr>/is', $desc, $rowMatches)) {
                             foreach ($rowMatches[1] as $rowHtml) {
@@ -293,6 +310,17 @@ while ($row_product_detail = mysqli_fetch_array($query_product_detail)) {
 
                                     $label = html_entity_decode(strip_tags($cellMatches[1][0]), ENT_QUOTES | ENT_HTML5, 'UTF-8');
                                 $value = html_entity_decode(strip_tags($cellMatches[1][1]), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+                                    $label = $normalizeLabel($label);
+                                    $labelKey = mb_strtolower($label, 'UTF-8');
+                                    if (isset($canonicalLabels[$labelKey])) {
+                                        $label = $canonicalLabels[$labelKey];
+                                    }
+
+                                    if (!$isAcceptedLabel($label)) {
+                                        continue;
+                                    }
+
                                 $addPair($label, $value);
                             }
                         }
@@ -310,53 +338,76 @@ while ($row_product_detail = mysqli_fetch_array($query_product_detail)) {
 
                         $lines = $normalized === '' ? [] : explode("\n", $normalized);
                         foreach ($lines as $line) {
-                            $line = trim($line, " \t\n\r\0\x0B-•");
+                            $line = trim((string)$line);
                             if ($line === '') {
                                 continue;
                             }
 
                             $label = '';
                             $value = '';
+                            $parsedAsPair = false;
 
                             if (preg_match('/^([^\t]{1,40})\t+(.+)$/u', $line, $tabParts)) {
                                 $label = trim($tabParts[1]);
                                 $value = trim($tabParts[2]);
+                                $parsedAsPair = true;
                             } elseif (preg_match('/^([^:]{1,40})\s*:\s*(.+)$/u', $line, $colonParts)) {
                                 $label = trim($colonParts[1]);
                                 $value = trim($colonParts[2]);
-                            } else {
-                                continue;
+                                $parsedAsPair = true;
                             }
 
-                            $label = $normalizeLabel($label);
-                            if (!$isAcceptedLabel($label)) {
-                                continue;
+                            if ($parsedAsPair) {
+                                $label = $normalizeLabel($label);
+                                if ($isAcceptedLabel($label)) {
+                                    $labelKey = mb_strtolower($label, 'UTF-8');
+                                    if (isset($canonicalLabels[$labelKey])) {
+                                        $label = $canonicalLabels[$labelKey];
+                                    }
+
+                                    $addPair($label, $value);
+                                    continue;
+                                }
                             }
 
-                            $labelKey = mb_strtolower($label, 'UTF-8');
-                            if (isset($canonicalLabels[$labelKey])) {
-                                $label = $canonicalLabels[$labelKey];
-                            }
-
-                            $addPair($label, $value);
+                            $addNarrativeLine($line);
                         }
 
-                        if (!empty($pairs)) {
-                            echo '<div class="product-specs">';
-                            foreach ($pairs as $pair) {
-                                echo '<div class="product-specs__row">';
-                                echo '<span class="product-specs__label">' . htmlspecialchars($pair['label'], ENT_QUOTES, 'UTF-8') . ':</span>';
-                                echo '<span class="product-specs__value">' . htmlspecialchars($pair['value'], ENT_QUOTES, 'UTF-8') . '</span>';
+                        $narrativeText = implode(' ', $narrativeLines);
+                        $isMarketingText = preg_match('/cam kết chỉ bán hàng chính hãng|giá cả tốt nhất thị trường|giao hàng toàn quốc|liên hệ ngay|hotline/iu', $narrativeText);
+                        $shouldShowNarrative = !empty($narrativeLines) && !($isMarketingText && empty($pairs));
+
+                        if (!empty($pairs) || $shouldShowNarrative) {
+                            echo '<div class="product-description-layout">';
+
+                            if (!empty($pairs)) {
+                                echo '<div class="product-info-card">';
+                                echo '<h4 class="product-info-card__title">Thông số sản phẩm</h4>';
+                                echo '<div class="product-specs">';
+                                foreach ($pairs as $pair) {
+                                    echo '<div class="product-specs__row">';
+                                    echo '<span class="product-specs__label">' . htmlspecialchars($pair['label'], ENT_QUOTES, 'UTF-8') . ':</span>';
+                                    echo '<span class="product-specs__value">' . htmlspecialchars($pair['value'], ENT_QUOTES, 'UTF-8') . '</span>';
+                                    echo '</div>';
+                                }
+                                echo '</div>';
                                 echo '</div>';
                             }
-                            echo '</div>';
-                        } elseif ($normalized !== '') {
-                            $isMarketingText = preg_match('/cam kết chỉ bán hàng chính hãng|giá cả tốt nhất thị trường|giao hàng toàn quốc/iu', $normalized);
-                            if ($isMarketingText) {
-                                echo '<p>Thông tin chi tiết sản phẩm đang được cập nhật.</p>';
-                            } else {
-                                echo '<p>' . nl2br(htmlspecialchars($normalized, ENT_QUOTES, 'UTF-8')) . '</p>';
+
+                            if ($shouldShowNarrative) {
+                                echo '<div class="product-info-card">';
+                                echo '<h4 class="product-info-card__title">Mô tả chi tiết</h4>';
+                                echo '<div class="product-story">';
+                                foreach ($narrativeLines as $line) {
+                                    echo '<p class="product-story__line">' . htmlspecialchars($line, ENT_QUOTES, 'UTF-8') . '</p>';
+                                }
+                                echo '</div>';
+                                echo '</div>';
                             }
+
+                            echo '</div>';
+                        } else {
+                            echo '<p>Thông tin chi tiết sản phẩm đang được cập nhật.</p>';
                         }
                         ?>
                     </div>
