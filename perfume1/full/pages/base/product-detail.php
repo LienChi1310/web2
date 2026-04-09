@@ -212,202 +212,50 @@ while ($row_product_detail = mysqli_fetch_array($query_product_detail)) {
                 <div class="tab-pane active">
                     <div class="product-detail__description">
                         <?php
-                        $desc = (string)($row_product_detail['product_description'] ?? '');
-                        $pairs = [];
-                        $seen = [];
-                        $narrativeLines = [];
-                        $seenNarrative = [];
+                        $descRaw = (string)($row_product_detail['product_description'] ?? '');
+                        $descRaw = trim($descRaw);
 
-                        $canonicalLabels = [
-                            'tên sản phẩm' => 'Tên sản phẩm',
-                            'thương hiệu' => 'Thương hiệu',
-                            'xuất xứ' => 'Xuất xứ',
-                            'xuất sứ' => 'Xuất xứ',
-                            'dung tích' => 'Dung tích',
-                            'nồng độ' => 'Nồng độ',
-                            'nhóm hương' => 'Nhóm hương',
-                            'phong cách' => 'Phong cách',
-                            'hương đầu' => 'Hương đầu',
-                            'hương giữa' => 'Hương giữa',
-                            'hương cuối' => 'Hương cuối',
-                            'độ lưu hương' => 'Độ lưu hương',
-                            'độ tỏa hương' => 'Độ tỏa hương',
-                            'lưu hương' => 'Lưu hương',
-                            'thời điểm khuyên dùng' => 'Thời điểm khuyên dùng',
-                            'thời điểm thích hợp' => 'Thời điểm thích hợp',
-                            'giới tính' => 'Giới tính',
-                            'năm phát hành' => 'Năm phát hành',
-                            'promotion' => 'Promotion',
-                        ];
+                        if ($descRaw === '') {
+                            echo '<p>Thông tin chi tiết sản phẩm đang được cập nhật.</p>';
+                        } else {
+                            $descHtml = html_entity_decode($descRaw, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                            $hasHtmlTag = preg_match('/<\s*\/?\s*[a-z][^>]*>/i', $descHtml) === 1;
 
-                        $normalizeLabel = function ($label) {
-                            $label = trim((string)$label);
-                            $label = preg_replace('/\s+/u', ' ', $label);
-                            $label = trim($label, " \t\n\r\0\x0B:.-");
-                            return $label;
-                        };
+                            if ($hasHtmlTag) {
+                                // Keep admin content structure while removing unsafe script/style blocks.
+                                $safeHtml = preg_replace('/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/i', '', $descHtml);
+                                $safeHtml = preg_replace('/\son[a-z]+\s*=\s*("[^"]*"|\'[^\']*\')/i', '', $safeHtml);
+                                $safeHtml = preg_replace('/\s(href|src)\s*=\s*("|\')\s*javascript:[^"\']*("|\')/i', ' $1="#"', $safeHtml);
 
-                        $isAcceptedLabel = function ($label) use ($canonicalLabels) {
-                            $raw = trim((string)$label);
-                            if ($raw === '') {
-                                return false;
-                            }
-
-                            $compact = preg_replace('/\s+/u', ' ', $raw);
-                            $wordCount = preg_match_all('/\S+/u', $compact, $m);
-                            if (mb_strlen($compact, 'UTF-8') > 40 || $wordCount > 5) {
-                                return false;
-                            }
-
-                            $key = mb_strtolower($compact, 'UTF-8');
-                            return isset($canonicalLabels[$key]);
-                        };
-
-                        $addPair = function ($label, $value) use (&$pairs, &$seen) {
-                            $label = trim((string)$label);
-                            $value = trim((string)$value);
-                            if ($label === '' || $value === '') {
-                                return;
-                            }
-
-                            $key = mb_strtolower($label, 'UTF-8');
-                            if (isset($seen[$key])) {
-                                return;
-                            }
-
-                            $seen[$key] = true;
-                            $pairs[] = [
-                                'label' => $label,
-                                'value' => $value,
-                            ];
-                        };
-
-                        $addNarrativeLine = function ($line) use (&$narrativeLines, &$seenNarrative) {
-                            $line = trim((string)$line, " \t\n\r\0\x0B-•");
-                            if ($line === '') {
-                                return;
-                            }
-
-                            $key = mb_strtolower($line, 'UTF-8');
-                            if (isset($seenNarrative[$key])) {
-                                return;
-                            }
-
-                            $seenNarrative[$key] = true;
-                            $narrativeLines[] = $line;
-                        };
-
-                        // 1) Extract from HTML tables first.
-                        if (preg_match_all('/<tr[^>]*>(.*?)<\/tr>/is', $desc, $rowMatches)) {
-                            foreach ($rowMatches[1] as $rowHtml) {
-                                if (!preg_match_all('/<t[dh][^>]*>(.*?)<\/t[dh]>/is', $rowHtml, $cellMatches)) {
-                                    continue;
-                                }
-
-                                if (count($cellMatches[1]) < 2) {
-                                    continue;
-                                }
-
-                                    $label = html_entity_decode(strip_tags($cellMatches[1][0]), ENT_QUOTES | ENT_HTML5, 'UTF-8');
-                                $value = html_entity_decode(strip_tags($cellMatches[1][1]), ENT_QUOTES | ENT_HTML5, 'UTF-8');
-
-                                    $label = $normalizeLabel($label);
-                                    $labelKey = mb_strtolower($label, 'UTF-8');
-                                    if (isset($canonicalLabels[$labelKey])) {
-                                        $label = $canonicalLabels[$labelKey];
-                                    }
-
-                                    if (!$isAcceptedLabel($label)) {
-                                        continue;
-                                    }
-
-                                $addPair($label, $value);
-                            }
-                        }
-
-                        // 2) Extract from plain text or remaining HTML lines.
-                        $normalized = preg_replace('/<br\s*\/?\s*>/i', "\n", $desc);
-                        $normalized = preg_replace('/<li[^>]*>/i', "\n", $normalized);
-                        $normalized = preg_replace('/<\/li>/i', "\n", $normalized);
-                        $normalized = preg_replace('/<\/(tr|table|p|div|h1|h2|h3|h4|h5|h6|ul|ol)>/i', "\n", $normalized);
-                        $normalized = html_entity_decode(strip_tags($normalized), ENT_QUOTES | ENT_HTML5, 'UTF-8');
-                        $normalized = preg_replace('/\r\n?|\r/', "\n", $normalized);
-                        $normalized = preg_replace('/[ \t]+/', ' ', $normalized);
-                        $normalized = preg_replace('/\n{2,}/', "\n", $normalized);
-                        $normalized = trim($normalized);
-
-                        $lines = $normalized === '' ? [] : explode("\n", $normalized);
-                        foreach ($lines as $line) {
-                            $line = trim((string)$line);
-                            if ($line === '') {
-                                continue;
-                            }
-
-                            $label = '';
-                            $value = '';
-                            $parsedAsPair = false;
-
-                            if (preg_match('/^([^\t]{1,40})\t+(.+)$/u', $line, $tabParts)) {
-                                $label = trim($tabParts[1]);
-                                $value = trim($tabParts[2]);
-                                $parsedAsPair = true;
-                            } elseif (preg_match('/^([^:]{1,40})\s*:\s*(.+)$/u', $line, $colonParts)) {
-                                $label = trim($colonParts[1]);
-                                $value = trim($colonParts[2]);
-                                $parsedAsPair = true;
-                            }
-
-                            if ($parsedAsPair) {
-                                $label = $normalizeLabel($label);
-                                if ($isAcceptedLabel($label)) {
-                                    $labelKey = mb_strtolower($label, 'UTF-8');
-                                    if (isset($canonicalLabels[$labelKey])) {
-                                        $label = $canonicalLabels[$labelKey];
-                                    }
-
-                                    $addPair($label, $value);
-                                    continue;
-                                }
-                            }
-
-                            $addNarrativeLine($line);
-                        }
-
-                        $narrativeText = implode(' ', $narrativeLines);
-                        $isMarketingText = preg_match('/cam kết chỉ bán hàng chính hãng|giá cả tốt nhất thị trường|giao hàng toàn quốc|liên hệ ngay|hotline/iu', $narrativeText);
-                        $shouldShowNarrative = !empty($narrativeLines) && !($isMarketingText && empty($pairs));
-
-                        if (!empty($pairs) || $shouldShowNarrative) {
-                            echo '<div class="product-description-layout">';
-
-                            if (!empty($pairs)) {
+                                echo '<div class="product-description-layout">';
                                 echo '<div class="product-info-card">';
-                                echo '<h4 class="product-info-card__title">Thông số sản phẩm</h4>';
-                                echo '<div class="product-specs">';
-                                foreach ($pairs as $pair) {
-                                    echo '<div class="product-specs__row">';
-                                    echo '<span class="product-specs__label">' . htmlspecialchars($pair['label'], ENT_QUOTES, 'UTF-8') . ':</span>';
-                                    echo '<span class="product-specs__value">' . htmlspecialchars($pair['value'], ENT_QUOTES, 'UTF-8') . '</span>';
+                                echo '<h4 class="product-info-card__title">Mô tả sản phẩm</h4>';
+                                echo '<div class="product-description-html">' . $safeHtml . '</div>';
+                                echo '</div>';
+                                echo '</div>';
+                            } else {
+                                $normalized = preg_replace('/\r\n?|\r/', "\n", $descRaw);
+                                $normalized = preg_replace('/[ \t]+/', ' ', $normalized);
+                                $normalized = preg_replace('/\n{2,}/', "\n", $normalized);
+                                $lines = array_filter(array_map('trim', explode("\n", $normalized)), static function ($line) {
+                                    return $line !== '';
+                                });
+
+                                if (empty($lines)) {
+                                    echo '<p>Thông tin chi tiết sản phẩm đang được cập nhật.</p>';
+                                } else {
+                                    echo '<div class="product-description-layout">';
+                                    echo '<div class="product-info-card">';
+                                    echo '<h4 class="product-info-card__title">Mô tả sản phẩm</h4>';
+                                    echo '<div class="product-story">';
+                                    foreach ($lines as $line) {
+                                        echo '<p class="product-story__line">' . htmlspecialchars($line, ENT_QUOTES, 'UTF-8') . '</p>';
+                                    }
+                                    echo '</div>';
+                                    echo '</div>';
                                     echo '</div>';
                                 }
-                                echo '</div>';
-                                echo '</div>';
                             }
-
-                            if ($shouldShowNarrative) {
-                                echo '<div class="product-info-card">';
-                                echo '<h4 class="product-info-card__title">Mô tả chi tiết</h4>';
-                                echo '<div class="product-story">';
-                                foreach ($narrativeLines as $line) {
-                                    echo '<p class="product-story__line">' . htmlspecialchars($line, ENT_QUOTES, 'UTF-8') . '</p>';
-                                }
-                                echo '</div>';
-                                echo '</div>';
-                            }
-
-                            echo '</div>';
-                        } else {
-                            echo '<p>Thông tin chi tiết sản phẩm đang được cập nhật.</p>';
                         }
                         ?>
                     </div>
