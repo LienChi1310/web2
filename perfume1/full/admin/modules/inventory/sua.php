@@ -586,7 +586,7 @@ while ($d = mysqli_fetch_assoc($query_detail)) {
     function attachProductOptionListeners(productContainer) {
         const productOptions = productContainer.querySelector('.dropdown-options');
         const productSearchInput = productContainer.querySelector('.search-input');
-        const productIdInput = productContainer.querySelector('input[type="hidden"]');
+        const productIdInput = productContainer.querySelector('input[name="product_id[]"]'); // FIX: Use specific selector
         const productOptionDivs = productOptions.querySelectorAll('.dropdown-option');
 
         productOptionDivs.forEach(option => {
@@ -594,7 +594,7 @@ while ($d = mysqli_fetch_assoc($query_detail)) {
                 e.stopPropagation();
                 const value = this.getAttribute('data-value');
                 const name = this.getAttribute('data-name');
-                productIdInput.value = value;
+                productIdInput.value = value; // ← Set product_id
                 productSearchInput.value = name || '';
                 productOptions.classList.remove('show');
             });

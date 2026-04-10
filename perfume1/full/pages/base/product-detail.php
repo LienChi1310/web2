@@ -1,6 +1,6 @@
 <?php
 $product_id = $_GET['product_id'];
-$sql_product_detail = "SELECT * FROM product JOIN capacity ON product.capacity_id = capacity.capacity_id WHERE product.product_id = '" . $_GET['product_id'] . "' LIMIT 1";
+$sql_product_detail = "SELECT * FROM product LEFT JOIN capacity ON product.capacity_id = capacity.capacity_id WHERE product.product_id = '" . $_GET['product_id'] . "' LIMIT 1";
 $query_product_detail = mysqli_query($mysqli, $sql_product_detail);
 $query_evaluate = mysqli_query($mysqli, "SELECT * FROM evaluate WHERE product_id='$product_id' AND evaluate_status = 1");
 $query_evaluate_rating = mysqli_query($mysqli, "SELECT * FROM evaluate WHERE product_id='$product_id' AND evaluate_status = 1");
