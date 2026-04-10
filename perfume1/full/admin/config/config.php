@@ -6,19 +6,21 @@ date_default_timezone_set('Asia/Ho_Chi_Minh');
 $isDocker = getenv('DOCKERIZED') === '1';
 
 if ($isDocker) {
-    // 👉 Đang chạy trong Docker
+    //  Đang chạy trong Docker
     $host = 'db';
     $port = 3306;
     $user = 'root';
     $pass = 'root';
-    $db   = 'dbperfume_clone';
+    $db   = 'dbperfume_web2';
+    // $db   = 'dbperfume_clone';
 } else {
-    // 👉 Đang chạy XAMPP (local)
+    //  Đang chạy XAMPP (local)
     $host = '127.0.0.1';
     $port = 3306;
     $user = 'root';
     $pass = '';  // XAMPP mặc định không mật khẩu
-    $db   = 'dbperfume_clone';
+    $db   = 'dbperfume_web2';
+    // $db   = 'dbperfume_clone';
 }
 
 $mysqli = @new mysqli($host, $user, $pass, $db, $port);

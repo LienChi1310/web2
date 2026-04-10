@@ -36,6 +36,8 @@ while ($item = mysqli_fetch_array($query_category_edit)) {
                                 Sửa
                             </button>
 
+                            <!-- Image upload - inside form -->
+                            <input type="file" class="d-none" id="category_image" name="category_image" accept="image/*">
                         </form>
                     </div>
                 </div>
@@ -53,7 +55,6 @@ while ($item = mysqli_fetch_array($query_category_edit)) {
                                         <img src="modules/category/uploads/<?php echo $item['category_image'] ?>" id="chosen-image" onerror="this.src='images/placeholder-image.webp'">
                                         <figcaption id="file-name"></figcaption>
                                     </figure>
-                                    <input type="file" class="d-none" id="category_image" name="category_image" accept="image/*">
                                     <label class="label-for-image" for="category_image">
                                         <i class="fas fa-upload"></i> &nbsp; Chọn hình ảnh
                                     </label>

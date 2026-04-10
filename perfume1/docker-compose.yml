@@ -4,7 +4,7 @@ services:
     container_name: perfume-db
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-dbperfume_clone}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-dbperfume_web2}
     command: [ "--default-authentication-plugin=mysql_native_password" ]
     ports:
       - "3307:3306"

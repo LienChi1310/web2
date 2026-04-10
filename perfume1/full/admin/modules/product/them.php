@@ -388,9 +388,9 @@
 
             // Validate price import
             const priceImport = document.getElementById('product_price_import');
-            if (!priceImport.value || parseInt(priceImport.value) <= 0) {
+            if (!priceImport.value || parseInt(priceImport.value) < 0) {
                 isValid = false;
-                errorMsg.push('Giá vốn phải lớn hơn 0');
+                errorMsg.push('Giá vốn không được âm');
             }
 
             // Validate profit percent
