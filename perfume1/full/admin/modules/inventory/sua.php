@@ -705,5 +705,37 @@ while ($d = mysqli_fetch_assoc($query_detail)) {
                 }
             });
         });
+
+        // === FORM VALIDATION ON SUBMIT ===
+        const form = document.getElementById('form-inventory');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const rows = document.querySelectorAll('#inventory-body tr');
+                let hasValidRow = false;
+                let errorMsg = [];
+
+                rows.forEach((row, index) => {
+                    const productIdInput = row.querySelector('input[name="product_id[]"]');
+                    const quantityInput = row.querySelector('input[name="quantity[]"]');
+                    const priceInput = row.querySelector('input[name="price_import[]"]');
+
+                    const productId = productIdInput ? parseInt(productIdInput.value) : 0;
+                    const quantity = quantityInput ? parseInt(quantityInput.value) : 0;
+                    const price = priceInput ? parseInt(priceInput.value) : 0;
+
+                    if (productId > 0 && quantity > 0 && price >= 0) {
+                        hasValidRow = true;
+                    } else if (productId === 0 || quantity <= 0) {
+                        errorMsg.push(`Dòng ${index + 1}: Chưa chọn sản phẩm hoặc số lượng không hợp lệ`);
+                    }
+                });
+
+                if (!hasValidRow) {
+                    e.preventDefault();
+                    alert('Lỗi:\n' + (errorMsg.length > 0 ? errorMsg.join('\n') : 'Phiếu nhập phải có ít nhất 1 sản phẩm hợp lệ.'));
+                    return false;
+                }
+            });
+        }
     });
 </script>

@@ -30,6 +30,7 @@ if (isset($_POST['inventory_add'])) {
         mysqli_query($mysqli, $sql_inventory);
 
         $inventory_id = mysqli_insert_id($mysqli);
+        $detail_count = 0;
 
         for ($i = 0; $i < count($product_ids); $i++) {
 
@@ -39,10 +40,21 @@ if (isset($_POST['inventory_add'])) {
 
             if ($product_id <= 0 || $quantity <= 0) continue;
 
-            mysqli_query($mysqli, "
+            $sql_detail = "
                 INSERT INTO inventory_detail(inventory_id, product_id, quantity, price_import)
                 VALUES ('$inventory_id', '$product_id', '$quantity', '$price_import')
-            ");
+            ";
+
+            if (!mysqli_query($mysqli, $sql_detail)) {
+                throw new Exception("Lỗi thêm chi tiết phiếu nhập: " . mysqli_error($mysqli));
+            }
+
+            $detail_count++;
+        }
+
+        // Kiểm tra: nếu không có dòng nào được thêm → rollback + báo lỗi
+        if ($detail_count === 0) {
+            throw new Exception("Phiếu nhập phải có ít nhất 1 sản phẩm hợp lệ.");
         }
 
         mysqli_commit($mysqli);
@@ -51,7 +63,10 @@ if (isset($_POST['inventory_add'])) {
         exit;
     } catch (Exception $e) {
         mysqli_rollback($mysqli);
-        header('Location: ../../index.php?action=inventory&query=inventory_add');
+        echo '<div class="alert alert-danger" style="margin: 20px; padding: 15px; border-radius: 4px;">';
+        echo '<strong>Lỗi:</strong> ' . htmlspecialchars($e->getMessage());
+        echo '<br><a href="index.php?action=inventory&query=inventory_add" class="btn btn-primary mt-2">← Quay lại</a>';
+        echo '</div>';
         exit;
     }
 }
@@ -171,31 +186,57 @@ if (isset($_POST['inventory_edit'])) {
         exit;
     }
 
-    mysqli_query($mysqli, "
-        DELETE FROM inventory_detail 
-        WHERE inventory_id = '$inventory_id'
-    ");
+    $product_ids = $_POST['product_id'] ?? [];
+    $quantities  = $_POST['quantity'] ?? [];
+    $prices      = $_POST['price_import'] ?? [];
 
-    $product_ids = $_POST['product_id'];
-    $quantities  = $_POST['quantity'];
-    $prices      = $_POST['price_import'];
+    mysqli_begin_transaction($mysqli);
 
-    for ($i = 0; $i < count($product_ids); $i++) {
-
-        $pid = (int)$product_ids[$i];
-        $qty = (int)$quantities[$i];
-        $pri = (int)$prices[$i];
-
-        if ($pid <= 0 || $qty <= 0) continue;
-
+    try {
         mysqli_query($mysqli, "
-            INSERT INTO inventory_detail(inventory_id, product_id, quantity, price_import)
-            VALUES('$inventory_id','$pid','$qty','$pri')
+            DELETE FROM inventory_detail 
+            WHERE inventory_id = '$inventory_id'
         ");
-    }
 
-    header('Location: ../../index.php?action=inventory&query=inventory_detail&inventory_id=' . $inventory_id);
-    exit;
+        $detail_count = 0;
+
+        for ($i = 0; $i < count($product_ids); $i++) {
+
+            $pid = (int)$product_ids[$i];
+            $qty = (int)$quantities[$i];
+            $pri = (int)$prices[$i];
+
+            if ($pid <= 0 || $qty <= 0) continue;
+
+            $sql_detail = "
+                INSERT INTO inventory_detail(inventory_id, product_id, quantity, price_import)
+                VALUES('$inventory_id','$pid','$qty','$pri')
+            ";
+
+            if (!mysqli_query($mysqli, $sql_detail)) {
+                throw new Exception("Lỗi cập nhật chi tiết phiếu nhập: " . mysqli_error($mysqli));
+            }
+
+            $detail_count++;
+        }
+
+        // Kiểm tra: nếu không có dòng nào được thêm → rollback + báo lỗi
+        if ($detail_count === 0) {
+            throw new Exception("Phiếu nhập phải có ít nhất 1 sản phẩm hợp lệ.");
+        }
+
+        mysqli_commit($mysqli);
+
+        header('Location: ../../index.php?action=inventory&query=inventory_detail&inventory_id=' . $inventory_id);
+        exit;
+    } catch (Exception $e) {
+        mysqli_rollback($mysqli);
+        echo '<div class="alert alert-danger" style="margin: 20px; padding: 15px; border-radius: 4px;">';
+        echo '<strong>Lỗi:</strong> ' . htmlspecialchars($e->getMessage());
+        echo '<br><a href="index.php?action=inventory&query=inventory_edit&inventory_id=' . $inventory_id . '" class="btn btn-primary mt-2">← Quay lại</a>';
+        echo '</div>';
+        exit;
+    }
 }
 
 /* =====================================================
